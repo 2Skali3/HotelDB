@@ -1,0 +1,45 @@
+# --- LaTeX: file di compilazione (rigenerati automaticamente, non versionare) ---
+*.aux
+*.log
+*.out
+*.toc
+*.lof
+*.lot
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.bbl
+*.bcf
+*.blg
+*.run.xml
+*.nav
+*.snm
+*.vrb
+*.idx
+*.ilg
+*.ind
+*.acn
+*.acr
+*.alg
+*.glg
+*.glo
+*.gls
+*.ist
+*.loa
+*.figlist
+*.makefile
+*.xdv
+*-blx.bib
+texput.log
+
+# NOTA: il PDF compilato finale (HotelDB_Relazione.pdf) va invece TENUTO
+# in docs/relazione/ — non è incluso in questo file, va committato normalmente.
+
+# --- Go: artefatti di build (per quando arriverà l'applicazione in app/) ---
+/app/bin/
+/app/*.exe
+*.test
+
+# --- Editor / sistema operativo ---
+.DS_Store
+Thumbs.db
