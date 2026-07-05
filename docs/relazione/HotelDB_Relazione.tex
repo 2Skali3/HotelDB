@@ -1,4 +1,11 @@
 \documentclass[a4paper,12pt]{report}
+\usepackage[
+  a4paper,
+  left=2.2cm,
+  right=2.2cm,
+  top=3.5cm,
+  bottom=3cm
+]{geometry}
 
 \usepackage{alltt, fancyvrb, url}
 \usepackage{graphicx}
@@ -11,8 +18,11 @@
 
 % Questo commentalo se vuoi scrivere in inglese.
 \usepackage[italian]{babel}
-
 \usepackage{cleveref}
+\usepackage{titlesec}
+\titleformat{\chapter}[display]
+  {\centering\normalfont\huge\bfseries}{\chaptertitlename\ \thechapter}{20pt}{\Huge}
+\titlespacing*{\chapter}{0pt}{-45pt}{20pt}
 
 \graphicspath{./Resources/}
 
@@ -26,30 +36,30 @@
 
 \begin{titlepage}
     \begin{center}
-    \vspace*{\fill}
+        \vspace*{\fill}
 
         \Huge{Relazione progetto per \\Base di Dati}
         \vspace{0.5cm}
 
-        
+
         \Huge\textbf{``Hotel DB''}
-        
+
         \vspace{0.5cm}
         \LARGE
-            Lasse Werpers
+        Lasse Werpers
 
         \vspace{0.5cm}
         \large
-            %\today
-            \today
-            
-        \vspace{1cm}
-         
-        \includegraphics[width=0.7\textwidth]{Resources/HotelPicture.jpg}   
+        %\today
+        \today
 
-    \vspace*{\fill}
+        \vspace{1cm}
+
+        \includegraphics[width=0.7\textwidth]{Resources/HotelPicture.jpg}
+
+        \vspace*{\fill}
     \end{center}
-    
+
 \end{titlepage}
 
 \tableofcontents
@@ -62,7 +72,7 @@ L’obiettivo è facilitare le operazioni quotidiane del personale dell’alberg
 
 \section{Intervista}
 
-Si vuole realizzare una base di dati a supporto della gestione delle attività fondamentali di un albergo. 
+Si vuole realizzare una base di dati a supporto della gestione delle attività fondamentali di un albergo.
 \medskip
 \newline
 Il sistema informativo dovrà supportare il personale dell’hotel nelle operazioni di registrazione dei clienti, gestione delle camere e delle prenotazioni, controllo dei servizi accessori, amministrazione degli utenti del sistema e produzione di report riepilogativi.
@@ -105,31 +115,31 @@ Infine, il sistema deve supportare la produzione di report di base, tra cui l’
 \section{Estrazione dei concetti principali}
 
 \begin{table}[h]
-\centering
-\rowcolors{2}{gray!10}{white}
-\begin{tabular}{|l|p{7cm}|l|}
-\hline
-\rowcolor{headerblue}
-\textbf{Termine} & \textbf{Descrizione} & \textbf{Sinonimi} \\
-\hline
-Cliente & Persona che effettua prenotazioni presso l’hotel & Ospite \\
-Prenotazione & Richiesta di soggiorno per uno o più periodi e camere & Booking \\
-Camera & Unità abitativa dell’hotel & Stanza \\
-TipologiaCamera & Categoria di camere con caratteristiche comuni & Tipo camera \\
-StatoPrenotazione & Stato logico di una prenotazione nel suo ciclo di vita & ......... \\
-LivelloLoyalty & Livello del programma fedeltà & Tier \\
-Servizio & Prestazione accessoria offerta dall’hotel & Extra \\
-Consumo & Utilizzo di un servizio da parte di un cliente & Consumazione \\
-Utente & Persona che utilizza il sistema informativo & Operatore \\
-Ruolo & Insieme di permessi associati a un utente & Profilo \\
-\hline
-\end{tabular}
-\caption{Glossario dei concetti principali}
+    \centering
+    \rowcolors{2}{gray!10}{white}
+    \begin{tabular}{|l|p{7cm}|l|}
+        \hline
+        \rowcolor{headerblue}
+        \textbf{Termine}  & \textbf{Descrizione}                                   & \textbf{Sinonimi} \\
+        \hline
+        Cliente           & Persona che effettua prenotazioni presso l’hotel       & Ospite            \\
+        Prenotazione      & Richiesta di soggiorno per uno o più periodi e camere  & Booking           \\
+        Camera            & Unità abitativa dell’hotel                             & Stanza            \\
+        TipologiaCamera   & Categoria di camere con caratteristiche comuni         & Tipo camera       \\
+        StatoPrenotazione & Stato logico di una prenotazione nel suo ciclo di vita & .........         \\
+        LivelloLoyalty    & Livello del programma fedeltà                          & Tier              \\
+        Servizio          & Prestazione accessoria offerta dall’hotel              & Extra             \\
+        Consumo           & Utilizzo di un servizio da parte di un cliente         & Consumazione      \\
+        Utente            & Persona che utilizza il sistema informativo            & Operatore         \\
+        Ruolo             & Insieme di permessi associati a un utente              & Profilo           \\
+        \hline
+    \end{tabular}
+    \caption{Glossario dei concetti principali}
 \end{table}
 
 \subsection{Riformulazione dei requisiti}
-A seguito della lettura e comprensione dei requisiti, si procede redigendo un testo che ne 
-riassuma tutti i concetti e in particolare ne estragga quelli principali eliminando le ambiguità 
+A seguito della lettura e comprensione dei requisiti, si procede redigendo un testo che ne
+riassuma tutti i concetti e in particolare ne estragga quelli principali eliminando le ambiguità
 sopra rilevate:
 \vspace{8mm}
 
@@ -166,68 +176,68 @@ L'applicazione deve risultare facile da apprendere anche per persone che non si 
 \subsubsection{Requisiti funzionali}
 \begin{itemize}
     \item Gestione Clienti:
-        \begin{itemize}
-            \item  Il sistema deve consentire la \textbf{registrazione di un nuovo cliente}, memorizzandone i dati anagrafici e almeno un recapito tra email o numero di telefono.
-            \item Il sistema deve consentire la \textbf{modifica e la consultazione} dei dati di un cliente.
-            \item Il sistema deve consentire la \textbf{visualizzazione dello storico delle prenotazioni} associate a un cliente.
-        \end{itemize}
+          \begin{itemize}
+              \item  Il sistema deve consentire la \textbf{registrazione di un nuovo cliente}, memorizzandone i dati anagrafici e almeno un recapito tra email o numero di telefono.
+              \item Il sistema deve consentire la \textbf{modifica e la consultazione} dei dati di un cliente.
+              \item Il sistema deve consentire la \textbf{visualizzazione dello storico delle prenotazioni} associate a un cliente.
+          \end{itemize}
     \item Programma Loyalty:
-        \begin{itemize}
-            \item  Il sistema deve consentire la \textbf{definizione dei livelli Loyalty} disponibili.
-            \item Il sistema deve consentire la \textbf{gestione dello storico dei livelli Loyalty}
-            \item Il sistema deve consentire il \textbf{calcolo automatico dello sconto Loyalty} applicabile a una prenotazione in base al livello del cliente nel periodo considerato.
-        \end{itemize}
+          \begin{itemize}
+              \item  Il sistema deve consentire la \textbf{definizione dei livelli Loyalty} disponibili.
+              \item Il sistema deve consentire la \textbf{gestione dello storico dei livelli Loyalty}
+              \item Il sistema deve consentire il \textbf{calcolo automatico dello sconto Loyalty} applicabile a una prenotazione in base al livello del cliente nel periodo considerato.
+          \end{itemize}
     \item Gestione Tipologie e Camere:
-        \begin{itemize}
-            \item  Il sistema deve consentire la \textbf{creazione, modifica e consultazione delle tipologie di camera}, specificandone le caratteristiche principali.
-            \item Il sistema deve consentire \textbf{l'inserimento e la gestione delle singole camere}, assiociandole a una tipologia.
-            \item Il sistema deve consentire l'\textbf{aggiornamento e la gestione dello stato di una camera} (disponibile, occupata, in manutenzione).
-        \end{itemize}
+          \begin{itemize}
+              \item  Il sistema deve consentire la \textbf{creazione, modifica e consultazione delle tipologie di camera}, specificandone le caratteristiche principali.
+              \item Il sistema deve consentire \textbf{l'inserimento e la gestione delle singole camere}, assiociandole a una tipologia.
+              \item Il sistema deve consentire l'\textbf{aggiornamento e la gestione dello stato di una camera} (disponibile, occupata, in manutenzione).
+          \end{itemize}
     \item Gestione Tipologie e Camere:
-        \begin{itemize}
-            \item  Il sistema deve consentire la \textbf{creazione, modifica e consultazione delle tipologie di camera}, specificandone le caratteristiche principali.
-            \item Il sistema deve consentire \textbf{l'inserimento e la gestione delle singole camere}, assiociandole a una tipologia.
-            \item Il sistema deve consentire l'\textbf{aggiornamento e la gestione dello stato di una camera} (disponibile, occupata, in manutenzione).
-            \end{itemize}
+          \begin{itemize}
+              \item  Il sistema deve consentire la \textbf{creazione, modifica e consultazione delle tipologie di camera}, specificandone le caratteristiche principali.
+              \item Il sistema deve consentire \textbf{l'inserimento e la gestione delle singole camere}, assiociandole a una tipologia.
+              \item Il sistema deve consentire l'\textbf{aggiornamento e la gestione dello stato di una camera} (disponibile, occupata, in manutenzione).
+          \end{itemize}
     \item Gestione Prenotazioni:
-        \begin{itemize}
-            \item Il sistema deve consentire la \textbf{creazione di una prenotazionej}, specificando cliente, date di check-in e check-out.
-            \item Il sistema deve consentire l'\textbf{associazione di una o più camere} a una prenotazione.
-            \item Il sistema deve consentire la \textbf{modifica o cancellazione di una prenotazione}, nel rispetto del suo stato corrente.
-            \item Il sistema deve consentire la \textbf{ gestione degli stati di una prenotazione} (richiesta, confermata, cancellata, check-in, check-out
-            \item Il sistema deve mantenere lo \textbf{storico dei cambi di stato} di ogni prenotazione, con data e ora.
-        \end{itemize}
+          \begin{itemize}
+              \item Il sistema deve consentire la \textbf{creazione di una prenotazionej}, specificando cliente, date di check-in e check-out.
+              \item Il sistema deve consentire l'\textbf{associazione di una o più camere} a una prenotazione.
+              \item Il sistema deve consentire la \textbf{modifica o cancellazione di una prenotazione}, nel rispetto del suo stato corrente.
+              \item Il sistema deve consentire la \textbf{ gestione degli stati di una prenotazione} (richiesta, confermata, cancellata, check-in, check-out
+              \item Il sistema deve mantenere lo \textbf{storico dei cambi di stato} di ogni prenotazione, con data e ora.
+          \end{itemize}
     \item Gestione Servizi e Consumi:
-        \begin{itemize}
-            \item Il sistema deve consentire la \textbf{definizione dei servizi accessori} offerti dall'hotel e dal relativo prezzo unitario.
-            \item Il sistema deve consentire la \textbf{registrazione delle consumazioni dei servizi}, indicando data, quantità e prezzo applicato.
-            \item Il sistema deve consentire l'\textbf{associazione di una consumazione a una prenotazione}, quando presente.
-            \item Il sistema deve consentire la \textbf{registrazione di consumazioni anche senza una prenotazione associata}
-        \end{itemize}
-    
+          \begin{itemize}
+              \item Il sistema deve consentire la \textbf{definizione dei servizi accessori} offerti dall'hotel e dal relativo prezzo unitario.
+              \item Il sistema deve consentire la \textbf{registrazione delle consumazioni dei servizi}, indicando data, quantità e prezzo applicato.
+              \item Il sistema deve consentire l'\textbf{associazione di una consumazione a una prenotazione}, quando presente.
+              \item Il sistema deve consentire la \textbf{registrazione di consumazioni anche senza una prenotazione associata}
+          \end{itemize}
+
     \item Gestione Utenti e Ruoli:
-        \begin{itemize}
-            \item Il sistema deve consentire la \textbf{creazione e gestione degli utenti} che accedono all'applicazione.
-            \item Il sistema deve consentire l'\textbf{assegnazione di uno o più ruoli a ciascun utente}.
-            \item Il sistema deve consentire la \textbf{consultazione dei ruoli associati a un utente}.
-        \end{itemize}
+          \begin{itemize}
+              \item Il sistema deve consentire la \textbf{creazione e gestione degli utenti} che accedono all'applicazione.
+              \item Il sistema deve consentire l'\textbf{assegnazione di uno o più ruoli a ciascun utente}.
+              \item Il sistema deve consentire la \textbf{consultazione dei ruoli associati a un utente}.
+          \end{itemize}
     \item Reportistica:
-        \begin{itemize}
-            \item Il sistema deve consentire la \textbf{visualizzazione delle camere disponibili} in un determinato intervallo di date.
-            \item Il sistema deve consentire la \textbf{visualizzazione delle prenotazioni} relative a una data specifica.
-            \item Il sistema deve consentire il \textbf{calcolo del fatturato giornaliero}, includendo prenotazioni concluse e consumazioni registrate.
-        \end{itemize}
+          \begin{itemize}
+              \item Il sistema deve consentire la \textbf{visualizzazione delle camere disponibili} in un determinato intervallo di date.
+              \item Il sistema deve consentire la \textbf{visualizzazione delle prenotazioni} relative a una data specifica.
+              \item Il sistema deve consentire il \textbf{calcolo del fatturato giornaliero}, includendo prenotazioni concluse e consumazioni registrate.
+          \end{itemize}
 \end{itemize}
 
 \subsubsection{Requisiti non funzionali}
 \begin{itemize}
-	\item L’applicazione deve risultare facile da apprendere anche per persone che non si affacciano regolarmente con il mondo informatico.
-        \item Il software:
-        \begin{itemize}
-            \item deve essere eseguibile in modo relativamente fluido.
-            \item deve essere compatibile con una varia gamma di hardware e sistemi operativi (Linux, Windows e MacOS).
-        \end{itemize}
-        \item L'applicativo dovrà essere più efficente possibile.
+    \item L’applicazione deve risultare facile da apprendere anche per persone che non si affacciano regolarmente con il mondo informatico.
+    \item Il software:
+          \begin{itemize}
+              \item deve essere eseguibile in modo relativamente fluido.
+              \item deve essere compatibile con una varia gamma di hardware e sistemi operativi (Linux, Windows e MacOS).
+          \end{itemize}
+    \item L'applicativo dovrà essere più efficente possibile.
 \end{itemize}
 
 \chapter{Progettazione Concettuale}
@@ -250,7 +260,7 @@ Questa scelta consente di separare correttamente le responsabilità dei soggetti
 
 \begin{figure}[H]
     \centering
-    \includegraphics[angle=0,width=\textwidth]{Resources/HotelDB_GeneralizzazionePersona.png}
+    \includegraphics[angle=0,width=0.75\textwidth]{Resources/HotelDB_GeneralizzazionePersona.png}
     \caption{Schema E/R con le principali entità per mostrare la generalizzazione inserita nel progetto}
     \label{uml}
 \end{figure}
@@ -267,7 +277,7 @@ Questo vincolo non è rappresentabile graficamente mediante sole cardinalità ne
 
 \begin{figure}[H]
     \centering
-    \includegraphics[angle=0,width=0.5\textwidth]{Resources/HotelDB_Prenotazione-Camera.png}
+    \includegraphics[angle=0,width=0.35\textwidth]{Resources/HotelDB_Prenotazione-Camera.png}
     \caption{Schema E/R con associazione Prenotazione-Camera molti-a-molti}
     \label{uml}
 \end{figure}
@@ -280,40 +290,99 @@ software.\medskip
 \newline
 L'associazione è stata modellata \textit{uno-a-molti} perché una \textbf{CAMERA} può essere classificata da una \textbf{TIPOLOGIA\_CAMERA} e una \textbf{TIPOLOGIA\_CAMERA} può essere attribuita a molte \textbf{CAMERE}.
 
-\subsection{}
+\begin{figure}[H]
+    \centering
+    \includegraphics[angle=0,width=0.7\textwidth]{Resources/HotelDB_TipologiaCamera.jpeg}
+    \caption{Schema E/R con associazione Prenotazione-Camera molti-a-molti}
+    \label{uml}
+\end{figure}
+
+\subsection{Storico dei Livelli Loyalty}
+
+L'associazione \textbf{appartenenza} tra \textbf{CLIENTE} e \textbf{LIVELLO\_LOYALTY} presenta l'attributo \textbf{DataInizio}, che indica da quando un cliente possiede un determinato livello. Non è stato invece introdotto un attributo \textbf{DataFine} esplicito.\medskip
+\newline
+Si è scelto di non rappresentare la data di fine nello schema perché è un'informazione \textit{derivabile}: dato lo storico dei livelli di un cliente ordinato per \textbf{DataInizio}, la data di fine di un livello coincide con la data di inizio del livello immediatamente successivo, se esiste; se il livello è quello attualmente posseduto dal cliente, non ha (ancora) una data di fine.\medskip
+\newline
+Introdurre comunque un attributo \textbf{DataFine} avrebbe reso lo schema ridondante, poiché il suo valore sarebbe interamente determinabile da dati già presenti (violando il criterio di \textbf{minimalità} richiesto per uno schema concettuale di qualità), a fronte del solo vantaggio di semplificare leggermente alcune interrogazioni. La derivazione verrà quindi calcolata in fase di traduzione delle operazioni in query SQL (tipicamente con una sotto-interrogazione correlata o una funzione finestra come \texttt{LEAD}), e non richiede modifiche allo schema concettuale.
 
 \chapter{Progettazione Logica}
 
 \section{Stima del volume dei dati}
 
-\begin{table}[h]
-\centering
-\rowcolors{2}{gray!10}{white}
-\begin{tabular}{|l|>{\centering\arraybackslash}p{2cm}|p{6cm}|}
-\hline
-\rowcolor{headerblue}
-\textbf{Concetto} & \textbf{Numero Stimato} & \textbf{Motivazione} \\
-\hline
-PERSONA & 15.000 & Clienti + Personale accumulato nel tempo \\
-CLIENTE & 14.500 & Clientela storica su più anni \\
-UTENTE & 15-20 & Personale interno \\
-RUOLO & 4-6 & Admin, Reception, Accounting, Maintenance... \\
-TIPOLOOGIA\_CAMERA & 6-10 & Single, Double, Deluxe, Suite...\\
-CAMERA & 80 & Hotel medio \\
-LIVELLO\_LOYALTY & 3-5 & Bronzo, Argento, Oro, Platino... \\
-PRENOTAZIONE & 25.000 & ~8.000/anno x 3 anni \\
-PRENOTAZIONE\_CAMERA & 35.000 & Alcune prenotazioni con più camere \\
-STATO\_PRENOTAZIONE & 5 & Requested, Confirmed, Cancelled, CheckedIn, CheckedOut \\
-STORICO\_STATO\_PRENOTAZIONE & 100.000 & ~4 cambi stato per prenotazione\\
-SERVIZIO & 10-20 & Colazione, minibar, noleggio... \\
-CONSUMO & 200.000 & Molti consumi per prenotazione \\
+Per ogni concetto dello schema concettuale (entità E o associazione A) si stima
+il numero di istanze previste, secondo la tavola dei volumi.
 
-\hline
-\end{tabular}
-\caption{Stima dei volumi}
+\begin{table}[H]
+    \centering
+    \rowcolors{2}{gray!10}{white}
+    \begin{tabular}{|l|c|>{\centering\arraybackslash}p{1.7cm}|p{5cm}|}
+        \hline
+        \rowcolor{headerblue}
+        \textbf{Concetto}   & \textbf{Costrutto} & \textbf{Numero Stimato} & \textbf{Motivazione}                                               \\
+        \hline
+        PERSONA             & E                  & 15.000                  & Clienti + personale accumulato nel tempo                           \\
+        CLIENTE             & E                  & 14.500                  & Clientela storica su più anni                                      \\
+        UTENTE              & E                  & 18                      & Personale interno                                                  \\
+        RUOLO               & E                  & 4                       & Admin, Reception, Accounting, Maintenance                          \\
+        ATTRIBUZIONE        & A                  & 22                      & Coppie Utente-Ruolo; pochi utenti con più di un ruolo              \\
+        TIPOLOGIA\_CAMERA   & E                  & 8                       & Single, Double Standard, Double Deluxe, Suite...                   \\
+        CAMERA              & E                  & 80                      & Hotel di medie dimensioni                                          \\
+        LIVELLO\_LOYALTY    & E                  & 4                       & Bronze, Silver, Gold, Platinum                                     \\
+        APPARTENENZA        & A                  & 19.000                  & Ogni cliente passa in media per 1-2 livelli nel tempo              \\
+        PRENOTAZIONE        & E                  & 25.000                  & \textasciitilde{}8.000/anno $\times$ 3 anni                        \\
+        ASSEGNAZIONE        & A                  & 35.000                  & Alcune prenotazioni includono più camere                           \\
+        STATO\_PRENOTAZIONE & E                  & 5                       & Requested, Confirmed, Cancelled, CheckedIn, CheckedOut             \\
+        VARIAZIONE          & A                  & 100.000                 & \textasciitilde{}4 cambi di stato per prenotazione (storico stati) \\
+        SERVIZIO            & E                  & 15                      & Colazione, minibar, noleggio biciclette...                         \\
+        CONSUMO             & E                  & 200.000                 & Più consumi per soggiorno                                          \\
+        \hline
+    \end{tabular}
+    \caption{Stima dei volumi}
+    \label{tab:volumi}
 \end{table}
 
 \section{Descrizione delle operazioni principali e stima della loro frequenza}
+
+Per ciascuna operazione principale si specifica il tipo (Interattiva I o
+Batch B) e la frequenza media di esecuzione, espressa in numero di
+occorrenze al giorno. Le frequenze sono derivate dalla tavola dei volumi
+(\cref{tab:volumi}), applicando i rapporti tra i concetti coinvolti,
+distribuiti su un arco temporale di riferimento di 3 anni (\textasciitilde{}1.095
+giorni), coerentemente con la stima di PRENOTAZIONE.
+
+In accordo con la regola empirica 80-20, l'analisi di dettaglio (schema di
+navigazione e tavola degli accessi, \cref{sec:accessi}) verrà svolta per le
+operazioni a maggiore frequenza, responsabili della quota preponderante del
+carico complessivo sul sistema.
+
+\begin{table}[H]
+    \centering
+    \rowcolors{2}{gray!10}{white}
+    \small
+    \begin{tabular}{|p{4.4cm}|l|c|c|p{3.6cm}|}
+        \hline
+        \rowcolor{headerblue}
+        \textbf{Operazione}                     & \textbf{Attore} & \textbf{Tipo} & \textbf{Freq.} & \textbf{Motivazione}                               \\
+        \hline
+        Registra nuovo cliente                  & Reception       & I             & 8/g            & Nuovi clienti nel tempo                            \\
+        Crea prenotazione                       & Reception       & I             & 23/g           & 25.000 / 1.095 giorni                              \\
+        Assegna camera/e a prenotazione         & Reception       & I             & 32/g           & ASSEGNAZIONE / 1.095 giorni                        \\
+        Cambia stato prenotazione               & Reception       & I             & 92/g           & VARIAZIONE / 1.095 giorni                          \\
+        Registra consumazione servizio          & Reception       & I             & 183/g          & CONSUMO / 1.095 giorni                             \\
+        Assegna livello loyalty a cliente       & Reception       & I             & 17/g           & APPARTENENZA / 1.095 giorni                        \\
+        Calcola sconto loyalty per prenotazione & Sistema         & I             & 23/g           & Una volta per prenotazione creata                  \\
+        Aggiorna stato camera                   & Maintenance     & I             & 46/g           & \textasciitilde{}2 per prenotazione (check-in/out) \\
+        Consulta disponibilità camere           & Reception       & I             & 50/g           & Consultata più volte per prenotazione              \\
+        Consulta prenotazioni per data          & Reception       & I             & 10/g           & Controllo giornaliero                              \\
+        Assegna ruolo a utente                  & Admin           & I             & 2/mese         & 22 ATTRIBUZIONE totali                             \\
+        Crea/modifica tipologia camera          & Admin           & I             & rara           & Configurazione quasi statica                       \\
+        Crea/modifica servizio accessorio       & Admin           & I             & rara           & Configurazione quasi statica                       \\
+        Calcola fatturato giornaliero           & Accounting      & B             & 1/g            & Aggregazione notturna automatica                   \\
+        \hline
+    \end{tabular}
+    \caption{Operazioni principali e stima della frequenza}
+    \label{tab:operazioni}
+\end{table}
 
 \chapter{Progettazione dell'Applicazione}
 
