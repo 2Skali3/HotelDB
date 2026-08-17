@@ -41,6 +41,5 @@ HotelDB/
 
 ## Licenza
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 This project is licensed under the MIT License. See the [[LICENSE](https://github.com/2Skali3/HotelDB/blob/main/LICENCE)] file for details.

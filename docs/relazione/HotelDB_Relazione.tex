@@ -11,7 +11,7 @@
 \usepackage{graphicx}
 \usepackage[utf8]{inputenc}
 \usepackage{float}
-\usepackage{hyperref}
+\usepackage[hidelinks]{hyperref}
 \usepackage[table]{xcolor}
 \usepackage{colortbl}
 
@@ -55,7 +55,7 @@
 
         \vspace{1cm}
 
-        \includegraphics[width=0.7\textwidth]{Resources/HotelPicture.jpg}
+        \includegraphics[width=0.7\textwidth]{../resources/HotelPicture.jpg}
 
         \vspace*{\fill}
     \end{center}
@@ -242,7 +242,17 @@ L'applicazione deve risultare facile da apprendere anche per persone che non si 
 
 \chapter{Progettazione Concettuale}
 
-\section{Schema Scheletro}
+\section{Schema ER Finale}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[angle=0,width=\textwidth]{../resources/HotelDB_ER_Finale.jpeg}
+    \caption{Schema E/R Finale}
+\end{figure}
+
+\newpage
+
+\section{Spiegazione dello schema}
 \subsection{Generalizzazione di \textit{PERSONA}}
 Le entità di \textbf{UTENTE} e \textbf{CLIENTE} sono la generalizzazione di una entità \textbf{PERSONA}, identificata tramite un codice univoco (non si utilizza il codice fiscale per evitare problemi di omocodia).
 \newline
@@ -260,10 +270,11 @@ Questa scelta consente di separare correttamente le responsabilità dei soggetti
 
 \begin{figure}[H]
     \centering
-    \includegraphics[angle=0,width=0.75\textwidth]{Resources/HotelDB_GeneralizzazionePersona.png}
+    \includegraphics[angle=0,width=0.75\textwidth]{../resources/ER/HotelDB_ER_GeneralizzazionePersona.png}
     \caption{Schema E/R con le principali entità per mostrare la generalizzazione inserita nel progetto}
-    \label{uml}
 \end{figure}
+
+\newpage
 
 \subsection{Ambiguità Temporale PRENOTAZIONI-CAMERE}
 Una \textbf{PRENOTAZIONE} può comprendere una o più \textbf{CAMERE}, mentre una \textbf{CAMERA} può essere associata a più \textbf{PRENOTAZIONI} nel tempo.\medskip
@@ -277,10 +288,24 @@ Questo vincolo non è rappresentabile graficamente mediante sole cardinalità ne
 
 \begin{figure}[H]
     \centering
-    \includegraphics[angle=0,width=0.35\textwidth]{Resources/HotelDB_Prenotazione-Camera.png}
+    \includegraphics[angle=0,width=0.40\textwidth]{../resources/ER/HotelDB_ER_Prenotazione-Camera.png}
     \caption{Schema E/R con associazione Prenotazione-Camera molti-a-molti}
-    \label{uml}
 \end{figure}
+
+\subsection{Storico degli Stati di una PRENOTAZIONE (variazione)}
+L'associazione \textbf{variazione} tra \textbf{PRENOTAZIONE} e \textbf{STATO\_PRENOTAZIONE} è stata modellata come \textit{molti-a-molti}, con attributo \textbf{DataOraCambio} e cardinalità (1,N) sul lato \textbf{PRENOTAZIONE} --- ogni prenotazione attraversa almeno un cambio di stato --- e (0,N) sul lato \textbf{STATO\_PRENOTAZIONE}, poiché ciascuno stato può essere associato a molte prenotazioni nel tempo.\medskip
+\newline
+Non esiste, nello schema, un attributo \textbf{StatoAttuale} direttamente su \textbf{PRENOTAZIONE}: lo stato corrente di una prenotazione è un'informazione \textit{derivabile} dallo storico delle variazioni, corrispondendo alla riga con \textbf{DataOraCambio} più recente per quella prenotazione. Introdurre un attributo separato per lo stato corrente duplicherebbe un'informazione già ricavabile dallo storico, violando lo stesso criterio di \textbf{minimalità}.\medskip
+\newline
+È stato inoltre confermato, come regola operativa e non come vincolo rappresentabile nello schema E/R, che la creazione di una nuova \textbf{PRENOTAZIONE} comporta automaticamente l'inserimento di una riga in \textbf{variazione} con stato iniziale ``Requested'': questo garantisce che ogni prenotazione abbia sempre almeno una variazione associata, coerentemente con la cardinalità (1,N) sopra indicata. Tale automatismo verrà tradotto in fase di Progettazione Logica come parte dell'operazione ``Crea prenotazione'' (\cref{tab:operazioni}), non richiede modifiche allo schema concettuale.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[angle=0,width=\textwidth]{../resources/ER/HotelDB_ER_StatoPrenotazione.jpeg}
+    \caption{Schema E/R con associazione Prenotazione-Camera molti-a-molti}
+\end{figure}
+
+\newpage
 
 \subsection{TIPOLOGIA\_CAMERE}
 Ogni \textbf{CAMERA} è classificata da una \textbf{TIPOLOGIA\_CAMERA}, ciascuna caratterizzata da specifiche proprietà commerciali e descrittive.\medskip
@@ -292,10 +317,11 @@ L'associazione è stata modellata \textit{uno-a-molti} perché una \textbf{CAMER
 
 \begin{figure}[H]
     \centering
-    \includegraphics[angle=0,width=0.7\textwidth]{Resources/HotelDB_TipologiaCamera.jpeg}
-    \caption{Schema E/R con associazione Prenotazione-Camera molti-a-molti}
-    \label{uml}
+    \includegraphics[angle=0,width=0.85\textwidth]{../resources/ER/HotelDB_ER_TipologiaCamera.jpeg}
+    \caption{Schema E/R per motrare associazione tra CAMERA e TIPOLOGIA\_CAMERA}
 \end{figure}
+
+\newpage
 
 \subsection{Storico dei Livelli Loyalty}
 
@@ -304,6 +330,42 @@ L'associazione \textbf{appartenenza} tra \textbf{CLIENTE} e \textbf{LIVELLO\_LOY
 Si è scelto di non rappresentare la data di fine nello schema perché è un'informazione \textit{derivabile}: dato lo storico dei livelli di un cliente ordinato per \textbf{DataInizio}, la data di fine di un livello coincide con la data di inizio del livello immediatamente successivo, se esiste; se il livello è quello attualmente posseduto dal cliente, non ha (ancora) una data di fine.\medskip
 \newline
 Introdurre comunque un attributo \textbf{DataFine} avrebbe reso lo schema ridondante, poiché il suo valore sarebbe interamente determinabile da dati già presenti (violando il criterio di \textbf{minimalità} richiesto per uno schema concettuale di qualità), a fronte del solo vantaggio di semplificare leggermente alcune interrogazioni. La derivazione verrà quindi calcolata in fase di traduzione delle operazioni in query SQL (tipicamente con una sotto-interrogazione correlata o una funzione finestra come \texttt{LEAD}), e non richiede modifiche allo schema concettuale.
+\newline
+Un'osservazione simile si pone per l'attributo \textbf{ScontoPercentuale} di \textbf{LIVELLO\_LOYALTY}: poiché lo sconto applicabile a una prenotazione dipende dal livello loyalty corrente del cliente, alcune interrogazioni frequenti (ad esempio il calcolo dello sconto in fase di creazione di una prenotazione) richiedono di risalire, tramite l'associazione \textbf{appartenenza}, al livello attualmente posseduto. Una possibile ridondanza controllata --- copiare il valore corrente di \textbf{ScontoPercentuale} direttamente su \textbf{CLIENTE}, aggiornandolo a ogni cambio di livello --- verrà valutata esplicitamente nella fase di \textbf{Analisi delle ridondanze} della Progettazione Logica, confrontando il vantaggio in termini di semplicità/costo delle interrogazioni con il rischio di disallineamento tra i due valori. Non viene presa alcuna decisione in questa fase concettuale: lo schema resta privo di questa ridondanza finché l'analisi costi/benefici non la giustificherà esplicitamente.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[angle=0,width=\textwidth]{../resources/ER/HotelDB_ER_Cliente-LivelloLoyalty.jpeg}
+    \caption{Schema E/R modellazione LIVELLO\_LOYALTY}
+\end{figure}
+
+\newpage
+
+\subsection{CONSUMO indipendente da PRENOTAZIONE}
+L'associazione \textbf{effettuazione} lega \textbf{CONSUMO} esclusivamente a \textbf{CLIENTE}, e non a \textbf{PRENOTAZIONE}. Un cliente può quindi registrare una o più consumazioni di servizi accessori (ad esempio il noleggio di una bicicletta o l'acquisto di un servizio in area comune) anche senza avere una prenotazione attiva presso l'hotel nel momento in cui il servizio viene erogato.\medskip
+\newline
+Questa scelta riflette un requisito funzionale esplicito: i servizi accessori dell'hotel non sono riservati esclusivamente agli ospiti con soggiorno in corso, ma possono essere fruiti da qualunque cliente registrato nel sistema, indipendentemente dal proprio stato di prenotazione. Un cliente che ha già effettuato il check-out, o che semplicemente non ha mai prenotato una camera, resta comunque un \textbf{CLIENTE} a tutti gli effetti e può richiedere servizi.\medskip
+\newline
+Introdurre invece un'associazione diretta tra \textbf{CONSUMO} e \textbf{PRENOTAZIONE} (anche opzionale, con cardinalità (0,1) sul lato prenotazione) avrebbe permesso di risalire immediatamente al soggiorno a cui afferisce una consumazione, ma non è un'informazione richiesta dai requisiti: l'unico vincolo funzionale è che ogni consumazione sia sempre riconducibile a un cliente identificato, non a un soggiorno specifico. Si è quindi scelto di non introdurre questa associazione, in coerenza con il criterio di \textbf{minimalità}: aggiungere un legame che nessun requisito richiede introdurrebbe complessità concettuale non necessaria.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[angle=0,width=0.7\textwidth]{../resources/ER/HotelDB_ER_Consumo-Prenotazione.jpeg}
+    \caption{Schema E/R indipendenza Consumo-Prenotazione}
+\end{figure}
+
+\subsection{CONSUMO e SERVIZIO}
+Ogni \textbf{CONSUMO} è relativo a un solo \textbf{SERVIZIO}, mentre uno stesso \textbf{SERVIZIO} può essere oggetto di molte consumazioni nel tempo. L'associazione \textbf{utilizzo} è stata quindi modellata come \textit{uno-a-molti}, con cardinalità (1,1) sul lato \textbf{CONSUMO} e (0,N) sul lato \textbf{SERVIZIO} --- la stessa struttura logica già adottata per l'associazione \textbf{classificazione} tra \textbf{CAMERA} e \textbf{TIPOLOGIA\_CAMERA}.\medskip
+\newline
+\textbf{SERVIZIO} rappresenta il catalogo statico dei servizi accessori offerti dall'hotel (nome e prezzo unitario correntemente in vigore), mentre \textbf{CONSUMO} rappresenta il singolo evento di utilizzo da parte di un cliente, con i propri attributi \textbf{DataOra}, \textbf{Quantità} e \textbf{PrezzoApplicato}.\medskip
+\newline
+L'attributo \textbf{PrezzoApplicato} su \textbf{CONSUMO} non è ridondante rispetto a \textbf{PrezzoUnitario} su \textbf{SERVIZIO}, pur essendo concettualmente vicino: rappresenta il prezzo effettivamente applicato al momento della consumazione, che può differire dal prezzo unitario corrente del servizio (ad esempio in caso di promozioni, sconti puntuali, o modifiche del listino avvenute dopo la registrazione della consumazione). Si tratta quindi di un dato storico da preservare indipendentemente da eventuali variazioni successive di \textbf{PrezzoUnitario}, e non di un valore derivabile.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[angle=0,width=0.5\textwidth]{../resources/ER/HotelDB_ER_Consumo-Servizio.jpeg}
+    \caption{Schema E/R associazione Consumo-Servizio}
+\end{figure}
 
 \chapter{Progettazione Logica}
 
@@ -359,29 +421,219 @@ carico complessivo sul sistema.
     \centering
     \rowcolors{2}{gray!10}{white}
     \small
-    \begin{tabular}{|p{4.4cm}|l|c|c|p{3.6cm}|}
+    \begin{tabular}{|p{5.7cm}|l|c|c|p{5.2cm}|}
         \hline
         \rowcolor{headerblue}
-        \textbf{Operazione}                     & \textbf{Attore} & \textbf{Tipo} & \textbf{Freq.} & \textbf{Motivazione}                               \\
+        \textbf{Operazione}                                                                  & \textbf{Attore} & \textbf{Tipo} & \textbf{Freq.} & \textbf{Motivazione}                               \\
         \hline
-        Registra nuovo cliente                  & Reception       & I             & 8/g            & Nuovi clienti nel tempo                            \\
-        Crea prenotazione                       & Reception       & I             & 23/g           & 25.000 / 1.095 giorni                              \\
-        Assegna camera/e a prenotazione         & Reception       & I             & 32/g           & ASSEGNAZIONE / 1.095 giorni                        \\
-        Cambia stato prenotazione               & Reception       & I             & 92/g           & VARIAZIONE / 1.095 giorni                          \\
-        Registra consumazione servizio          & Reception       & I             & 183/g          & CONSUMO / 1.095 giorni                             \\
-        Assegna livello loyalty a cliente       & Reception       & I             & 17/g           & APPARTENENZA / 1.095 giorni                        \\
-        Calcola sconto loyalty per prenotazione & Sistema         & I             & 23/g           & Una volta per prenotazione creata                  \\
-        Aggiorna stato camera                   & Maintenance     & I             & 46/g           & \textasciitilde{}2 per prenotazione (check-in/out) \\
-        Consulta disponibilità camere           & Reception       & I             & 50/g           & Consultata più volte per prenotazione              \\
-        Consulta prenotazioni per data          & Reception       & I             & 10/g           & Controllo giornaliero                              \\
-        Assegna ruolo a utente                  & Admin           & I             & 2/mese         & 22 ATTRIBUZIONE totali                             \\
-        Crea/modifica tipologia camera          & Admin           & I             & rara           & Configurazione quasi statica                       \\
-        Crea/modifica servizio accessorio       & Admin           & I             & rara           & Configurazione quasi statica                       \\
-        Calcola fatturato giornaliero           & Accounting      & B             & 1/g            & Aggregazione notturna automatica                   \\
+        Registra nuovo cliente                                                               & Reception       & I             & 8/g            & Nuovi clienti nel tempo                            \\
+        \hyperref[sec:CreaPrenotazione]{Crea prenotazione}                                   & Reception       & I             & 23/g           & 25.000 / 1.095 giorni                              \\
+        \hyperref[sec:AssegnaCamera]{Assegna camera/e a prenotazione}                        & Reception       & I             & 32/g           & ASSEGNAZIONE / 1.095 giorni                        \\
+        \hyperref[sec:CambiaStato]{Cambia stato prenotazione}                                & Reception       & I             & 92/g           & VARIAZIONE / 1.095 giorni                          \\
+        \hyperref[sec:RegistraConsumazione]{Registra consumazione servizio}                  & Reception       & I             & 183/g          & CONSUMO / 1.095 giorni                             \\
+        Assegna livello loyalty a cliente                                                    & Reception       & I             & 17/g           & APPARTENENZA / 1.095 giorni                        \\
+        Calcola sconto loyalty per prenotazione                                              & Sistema         & I             & 23/g           & Una volta per prenotazione creata                  \\
+        Aggiorna stato camera                                                                & Maintenance     & I             & 46/g           & \textasciitilde{}2 per prenotazione (check-in/out) \\
+        \hyperref[sec:ConsultaDisponibilità]{Consulta disponibilità camere in un intervallo} & Reception       & I             & 50/g           & Consultata più volte per prenotazione              \\
+        Consulta prenotazioni per data                                                       & Reception       & I             & 10/g           & Controllo giornaliero                              \\
+        Assegna ruolo a utente                                                               & Admin           & I             & 2/mese         & 22 ATTRIBUZIONE totali                             \\
+        Crea/modifica tipologia camera                                                       & Admin           & I             & rara           & Configurazione quasi statica                       \\
+        Crea/modifica servizio accessorio                                                    & Admin           & I             & rara           & Configurazione quasi statica                       \\
+        Calcola fatturato giornaliero                                                        & Accounting      & B             & 1/g            & Aggregazione notturna automatica                   \\
         \hline
     \end{tabular}
     \caption{Operazioni principali e stima della frequenza}
     \label{tab:operazioni}
+\end{table}
+
+\section{Schemi di navigazione e tabelle degli accessi}
+
+In questa sezione si proseguirà a mostrare lo schema di navigazione delle operazioni più importanti, e le relative tabelle degli accessi. Nel calcolo degli accessi si stima come doppio il peso degli accessi di scrittura rispetto a quelli di lettura.
+
+\subsection{Crea prenotazione (manca commento)}
+\label{sec:CreaPrenotazione}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.60\textwidth]{../resources/nav/HotelDB_Nav_CreaPrenotazione.jpeg}
+    \caption{Schema di navigazione — Consulta disponibilità camere}
+\end{figure}
+
+\begin{table}[H]
+    \centering
+    \rowcolors{2}{gray!10}{white}
+    \begin{tabular}{|l|c|c|c|}
+        \hline
+        \rowcolor{headerblue}
+        \textbf{Concetto}   & \textbf{Costrutto} & \textbf{Accessi} & \textbf{Tipo}    \\
+        \hline
+        CLIENTE             & E                  & 1                & L                \\
+        APPARTENENZA        & A                  & 2                & L                \\
+        LIVELLO\_LOYALTY    & E                  & 1                & L                \\
+        PRENOTAZIONE        & E                  & 1                & S                \\
+        STATO\_PRENOTAZIONE & E                  & 1                & L                \\
+        VARIAZIONE          & A                  & 1                & S                \\
+        \hline
+        \rowcolor{gray!25}
+        \textbf{Totale}     &                    & \textbf{6}       & \textbf{4L + 2S} \\
+        \hline
+    \end{tabular}
+    \caption{Tavola degli accessi — Crea prenotazione}
+\end{table}
+
+Costo totale delle operazioni = (4L + 2S * 2) * 23 = 184 al gg
+
+\subsection{Assegna camera/e a prenotazione}
+\label{sec:AssegnaCamera}
+
+\begin{table}[H]
+    \centering
+    \rowcolors{2}{gray!10}{white}
+    \begin{tabular}{|l|c|c|c|}
+        \hline
+        \rowcolor{headerblue}
+        \textbf{Concetto} & \textbf{Costrutto} & \textbf{Accessi}              & \textbf{Tipo}        \\
+        \hline
+        PRENOTAZIONE      & E                  & 1                             & L                    \\
+        CAMERA            & E                  & 1,4                           & L                    \\
+        ASSEGNAZIONE      & A                  & 1,4                           & S                    \\
+        \hline
+        \rowcolor{gray!25}
+        \textbf{Totale}   &                    & \textbf{\textasciitilde{}3,8} & \textbf{2.4L + 1.4S} \\
+        \hline
+    \end{tabular}
+    \caption{Tavola degli accessi — Assegna camera/e a prenotazione}
+\end{table}
+
+\subsection{Cambia stato prenotazione}
+\label{sec:CambiaStato}
+
+\begin{table}[H]
+    \centering
+    \rowcolors{2}{gray!10}{white}
+    \begin{tabular}{|l|c|c|c|}
+        \hline
+        \rowcolor{headerblue}
+        \textbf{Concetto}   & \textbf{Costrutto} & \textbf{Accessi} & \textbf{Tipo} \\
+        \hline
+        PRENOTAZIONE        & E                  & 1                & L             \\
+        STATO\_PRENOTAZIONE & E                  & 1                & L             \\
+        VARIAZIONE          & A                  & 1                & S             \\
+        \hline
+    \end{tabular}
+    \caption{Tavola degli accessi — Cambia stato prenotazione}
+\end{table}
+
+\subsection{Registra consumazione servizio}
+\label{sec:RegistraConsumazione}
+
+L'operazione collega CLIENTE a SERVIZIO passando per CONSUMO. Trattandosi
+di un'associazione binaria semplice (CONSUMO è legato solo a CLIENTE, mai
+a PRENOTAZIONE, come da decisione di progettazione concettuale), il
+cammino logico è lineare e non richiede attraversamenti multipli.
+Nonostante sia l'operazione più frequente del sistema (183 occorrenze al
+giorno), il suo costo in accessi resta contenuto: è un buon esempio di
+come alta frequenza non implichi necessariamente alto carico.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.55\textwidth]{example-image}
+    \caption{Schema di navigazione — Registra consumazione servizio}
+\end{figure}
+
+\begin{table}[H]
+    \centering
+    \rowcolors{2}{gray!10}{white}
+    \begin{tabular}{|l|c|c|c|}
+        \hline
+        \rowcolor{headerblue}
+        \textbf{Concetto} & \textbf{Costrutto} & \textbf{Accessi} & \textbf{Tipo}    \\
+        \hline
+        CLIENTE           & E                  & 1                & L                \\
+        SERVIZIO          & E                  & 1                & L                \\
+        CONSUMO           & E                  & 1                & S                \\
+        \hline
+        \rowcolor{gray!25}
+        \textbf{Totale}   &                    & \textbf{3}       & \textbf{2L + 1S} \\
+        \hline
+    \end{tabular}
+    \caption{Tavola degli accessi — Registra consumazione servizio}
+\end{table}
+
+\subsection{Consulta disponibilità camere in un intervallo}
+\label{sec:ConsultaDisponibilità}
+
+\subsection*{Analisi: criteri di ricerca disponibilità}
+
+La ricerca di camere disponibili può avvenire secondo due criteri, non
+alternativi:
+\begin{itemize}
+    \item per \textbf{tipologia specifica} (es. ``una Deluxe per 2
+          persone''): il filtro agisce su \texttt{NomeTipologia};
+    \item per \textbf{capacità} (es. ``una camera per 2 persone''): il
+          filtro agisce solo sull'attributo \texttt{NumeroLetti} di
+          \textbf{TIPOLOGIA\_CAMERA}, indipendentemente dalla tipologia
+          specifica.
+\end{itemize}
+Entrambi i casi sono coperti dagli attributi già presenti in
+TIPOLOGIA\_CAMERA, senza necessità di modifiche allo schema concettuale.
+Ai fini della tavola degli accessi si considera il caso più oneroso, ossia
+la ricerca per capacità, che nel caso peggiore coinvolge camere di più
+tipologie (fino alle 80 camere totali), anziché il sottoinsieme di una
+singola tipologia (in media 80/8 $=$ 10 camere).
+
+\begin{table}[H]
+    \centering
+    \rowcolors{2}{gray!10}{white}
+    \begin{tabular}{|l|c|c|c|}
+        \hline
+        \rowcolor{headerblue}
+        \textbf{Concetto} & \textbf{Costrutto} & \textbf{Accessi}       & \textbf{Tipo} \\
+        \hline
+        CAMERA            & E                  & 8                      & L             \\
+        ASSEGNAZIONE      & A                  & \textasciitilde{}15-30 & L             \\
+        PRENOTAZIONE      & E                  & \textasciitilde{}15-30 & L             \\
+        \hline
+    \end{tabular}
+    \caption{Tavola degli accessi — Consulta disponibilità camere}
+\end{table}
+
+\subsection{Consulta disponibilità camere in un intervallo}
+
+L'operazione richiede di incrociare ogni camera con le prenotazioni
+esistenti che si sovrappongono al periodo richiesto, leggendo
+\texttt{dataCheckIn} e \texttt{dataCheckOut} di ciascuna. È l'unica
+operazione tra quelle analizzate il cui costo non deriva direttamente da
+un rapporto fisso nella tavola dei volumi, ma da un'assunzione sulla
+distribuzione temporale delle prenotazioni: si stima che, per un dato
+intervallo di ricerca, siano coinvolte mediamente 15-30 righe di
+ASSEGNAZIONE/PRENOTAZIONE su un totale storico di 35.000/25.000. Questo
+la rende un'ottima candidata a beneficiare di un indice composito su
+(\texttt{dataCheckIn}, \texttt{dataCheckOut}) in fase SQL.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.55\textwidth]{example-image}
+    \caption{Schema di navigazione — Consulta disponibilità camere}
+\end{figure}
+
+\begin{table}[H]
+    \centering
+    \rowcolors{2}{gray!10}{white}
+    \begin{tabular}{|l|c|c|c|}
+        \hline
+        \rowcolor{headerblue}
+        \textbf{Concetto} & \textbf{Costrutto} & \textbf{Accessi}                  & \textbf{Tipo}    \\
+        \hline
+        CAMERA            & E                  & 80                                & L                \\
+        ASSEGNAZIONE      & A                  & \textasciitilde{}15-30            & L                \\
+        PRENOTAZIONE      & E                  & \textasciitilde{}15-30            & L                \\
+        \hline
+        \rowcolor{gray!25}
+        \textbf{Totale}   &                    & \textbf{\textasciitilde{}110-140} & \textbf{tutti L} \\
+        \hline
+    \end{tabular}
+    \caption{Tavola degli accessi — Consulta disponibilità camere}
 \end{table}
 
 \chapter{Progettazione dell'Applicazione}
