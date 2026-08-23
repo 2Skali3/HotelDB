@@ -424,22 +424,22 @@ carico complessivo sul sistema.
     \begin{tabular}{|p{5.7cm}|l|c|c|p{5.2cm}|}
         \hline
         \rowcolor{headerblue}
-        \textbf{Operazione}                                                                  & \textbf{Attore} & \textbf{Tipo} & \textbf{Freq.} & \textbf{Motivazione}                               \\
+        \textbf{Operazione}                                                                  & \textbf{Attore} & \textbf{Tipo} & \textbf{Freq.}          & \textbf{Motivazione}                               \\
         \hline
-        Registra nuovo cliente                                                               & Reception       & I             & 8/g            & Nuovi clienti nel tempo                            \\
-        \hyperref[sec:CreaPrenotazione]{Crea prenotazione}                                   & Reception       & I             & 23/g           & 25.000 / 1.095 giorni                              \\
-        \hyperref[sec:AssegnaCamera]{Assegna camera/e a prenotazione}                        & Reception       & I             & 32/g           & ASSEGNAZIONE / 1.095 giorni                        \\
-        \hyperref[sec:CambiaStato]{Cambia stato prenotazione}                                & Reception       & I             & 92/g           & VARIAZIONE / 1.095 giorni                          \\
-        \hyperref[sec:RegistraConsumazione]{Registra consumazione servizio}                  & Reception       & I             & 183/g          & CONSUMO / 1.095 giorni                             \\
-        Assegna livello loyalty a cliente                                                    & Reception       & I             & 17/g           & APPARTENENZA / 1.095 giorni                        \\
-        Calcola sconto loyalty per prenotazione                                              & Sistema         & I             & 23/g           & Una volta per prenotazione creata                  \\
-        Aggiorna stato camera                                                                & Maintenance     & I             & 46/g           & \textasciitilde{}2 per prenotazione (check-in/out) \\
-        \hyperref[sec:ConsultaDisponibilità]{Consulta disponibilità camere in un intervallo} & Reception       & I             & 50/g           & Consultata più volte per prenotazione              \\
-        Consulta prenotazioni per data                                                       & Reception       & I             & 10/g           & Controllo giornaliero                              \\
-        Assegna ruolo a utente                                                               & Admin           & I             & 2/mese         & 22 ATTRIBUZIONE totali                             \\
-        Crea/modifica tipologia camera                                                       & Admin           & I             & rara           & Configurazione quasi statica                       \\
-        Crea/modifica servizio accessorio                                                    & Admin           & I             & rara           & Configurazione quasi statica                       \\
-        Calcola fatturato giornaliero                                                        & Accounting      & B             & 1/g            & Aggregazione notturna automatica                   \\
+        \hyperref[sec:RegistraCliente]{Registra nuovo cliente}                               & Reception       & I             & 8/g                     & Nuovi clienti nel tempo                            \\
+        \hyperref[sec:CreaPrenotazione]{Crea prenotazione}                                   & Reception       & I             & 23/g                    & 25.000 / 1.095 giorni                              \\
+        \hyperref[sec:AssegnaCamera]{Assegna camera/e a prenotazione}                        & Reception       & I             & 32/g                    & ASSEGNAZIONE / 1.095 giorni                        \\
+        \hyperref[sec:CambiaStato]{Cambia stato prenotazione}                                & Reception       & I             & 92/g                    & VARIAZIONE / 1.095 giorni                          \\
+        \hyperref[sec:RegistraConsumazione]{Registra consumazione servizio}                  & Reception       & I             & 183/g                   & CONSUMO / 1.095 giorni                             \\
+        \hyperref[sec:AssegnaLivello]{Assegna livello loyalty a cliente}                     & Reception       & I             & 17/g                    & APPARTENENZA / 1.095 giorni                        \\
+        \hyperref[sec:CalcolaSconto]{Calcola sconto loyalty per prenotazione}                & Sistema         & I             & 23/g                    & Una volta per prenotazione creata                  \\
+        \hyperref[sec:AggiornaStatoCamera]{Aggiorna stato camera}                            & Maintenance     & I             & 46/g                    & \textasciitilde{}2 per prenotazione (check-in/out) \\
+        \hyperref[sec:ConsultaDisponibilita]{Consulta disponibilità camere in un intervallo} & Reception       & I             & 50/g                    & Consultata più volte per prenotazione              \\
+        \hyperref[sec:ConsultaPrenotazioniData]{Consulta prenotazioni per data}              & Reception       & I             & 10/g                    & Controllo giornaliero (soggiorno attivo)           \\
+        \hyperref[sec:AssegnaRuolo]{Assegna ruolo a utente}                                  & Admin           & I             & 0,07/g (2/mese)         & 22 ATTRIBUZIONE totali                             \\
+        \hyperref[sec:TipologiaCameraOp]{Crea/modifica tipologia camera}                     & Admin           & I             & \textasciitilde{}0,03/g & Configurazione quasi statica (stima simbolica)     \\
+        \hyperref[sec:ServizioOp]{Crea/modifica servizio accessorio}                         & Admin           & I             & \textasciitilde{}0,03/g & Configurazione quasi statica (stima simbolica)     \\
+        \hyperref[sec:FatturatoGiornaliero]{Calcola fatturato giornaliero}                   & Accounting      & B             & 1/g                     & Aggregazione notturna automatica                   \\
         \hline
     \end{tabular}
     \caption{Operazioni principali e stima della frequenza}
@@ -447,16 +447,84 @@ carico complessivo sul sistema.
 \end{table}
 
 \section{Schemi di navigazione e tabelle degli accessi}
+\label{sec:accessi}
 
-In questa sezione si proseguirà a mostrare lo schema di navigazione delle operazioni più importanti, e le relative tabelle degli accessi. Nel calcolo degli accessi si stima come doppio il peso degli accessi di scrittura rispetto a quelli di lettura.
+In questa sezione si costruiscono, per \emph{tutte} le operazioni principali
+individuate in \cref{tab:operazioni}, lo schema di navigazione e la
+relativa tavola degli accessi. A differenza di un approccio che selezioni
+a priori un sottoinsieme di operazioni "importanti", si è scelto di
+analizzare l'intero insieme e di rimandare l'applicazione della regola
+80-20 alla sezione di sintesi finale (\cref{sec:sintesiCarico}), una volta
+disponibile il costo giornaliero di ciascuna operazione. Questo evita di
+polarizzare la selezione su stime di importanza soggettive prima di avere
+i dati di carico effettivi.
 
-\subsection{Crea prenotazione (manca commento)}
+Convenzioni adottate in tutta la sezione:
+\begin{itemize}
+    \item il costo degli accessi in scrittura è considerato doppio
+          rispetto a quello delle letture (come da \cref{sec:accessi} delle
+          slide del corso): costo pesato per esecuzione $= L + 2S$;
+    \item tutte le frequenze sono espresse in accessi/giorno, per
+          permettere il confronto diretto nella tavola di sintesi finale;
+    \item quando il numero di istanze coinvolte non deriva da un semplice
+          rapporto nella tavola dei volumi (\cref{tab:volumi}), l'assunzione
+          statistica adottata è dichiarata esplicitamente nel paragrafo di
+          analisi.
+\end{itemize}
+
+\subsection{Registra nuovo cliente}
+\label{sec:RegistraCliente}
+
+Operazione di sola inserzione: crea una nuova istanza di \textbf{PERSONA}
+e la corrispondente istanza di \textbf{CLIENTE} lungo la generalizzazione
+parziale sovrapposta descritta in Progettazione Concettuale. Non coinvolge
+alcuna associazione: è l'operazione più semplice della tavola, un buon
+punto di riferimento per il limite inferiore di costo.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.45\textwidth]{../resources/nav/HotelDB_Nav_RegistraCliente.jpeg}
+    \caption{Schema di navigazione --- Registra nuovo cliente}
+\end{figure}
+
+\begin{table}[H]
+    \centering
+    \rowcolors{2}{gray!10}{white}
+    \begin{tabular}{|l|c|c|c|}
+        \hline
+        \rowcolor{headerblue}
+        \textbf{Concetto} & \textbf{Costrutto} & \textbf{Accessi} & \textbf{Tipo} \\
+        \hline
+        PERSONA           & E                  & 1                & S             \\
+        CLIENTE           & E                  & 1                & S             \\
+        \hline
+        \rowcolor{gray!25}
+        \textbf{Totale}   &                    & \textbf{2}       & \textbf{2S}   \\
+        \hline
+    \end{tabular}
+    \caption{Tavola degli accessi --- Registra nuovo cliente}
+\end{table}
+
+Costo giornaliero dell'operazione $= (0L + 2S{\times}2) \times 8 = 32$
+accessi/giorno.
+
+\subsection{Crea prenotazione}
 \label{sec:CreaPrenotazione}
+
+L'operazione crea una \textbf{PRENOTAZIONE} per un \textbf{CLIENTE}
+esistente e, come confermato in fase concettuale, inserisce
+automaticamente una riga in \textbf{VARIAZIONE} con stato ``Requested'':
+per questo motivo l'operazione tocca anche \textbf{STATO\_PRENOTAZIONE}
+(per recuperare l'identificativo dello stato iniziale) pur non
+modificandolo. La lettura di \textbf{APPARTENENZA}/\textbf{LIVELLO\_LOYALTY}
+serve a determinare lo sconto loyalty da applicare — la stessa lettura
+analizzata isolatamente in \cref{sec:CalcolaSconto}, qui contata come
+parte del flusso di creazione.
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.60\textwidth]{../resources/nav/HotelDB_Nav_CreaPrenotazione.jpeg}
-    \caption{Schema di navigazione — Consulta disponibilità camere}
+    \caption{Schema di navigazione --- Crea prenotazione}
 \end{figure}
 
 \begin{table}[H]
@@ -478,13 +546,25 @@ In questa sezione si proseguirà a mostrare lo schema di navigazione delle opera
         \textbf{Totale}     &                    & \textbf{6}       & \textbf{4L + 2S} \\
         \hline
     \end{tabular}
-    \caption{Tavola degli accessi — Crea prenotazione}
+    \caption{Tavola degli accessi --- Crea prenotazione}
 \end{table}
 
-Costo totale delle operazioni = (4L + 2S * 2) * 23 = 184 al gg
+Costo giornaliero dell'operazione $= (4L + 2S{\times}2) \times 23 = 184$
+accessi/giorno.
 
 \subsection{Assegna camera/e a prenotazione}
 \label{sec:AssegnaCamera}
+
+Associa una o più camere disponibili a una prenotazione già creata,
+scrivendo altrettante righe in \textbf{ASSEGNAZIONE}. Il numero medio di
+camere per prenotazione si stima dal rapporto
+$\text{ASSEGNAZIONE}/\text{PRENOTAZIONE} = 35.000/25.000 = 1{,}4$.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.55\textwidth]{../resources/nav/HotelDB_Nav_AssegnaCamera.jpeg}
+    \caption{Schema di navigazione --- Assegna camera/e a prenotazione}
+\end{figure}
 
 \begin{table}[H]
     \centering
@@ -502,11 +582,28 @@ Costo totale delle operazioni = (4L + 2S * 2) * 23 = 184 al gg
         \textbf{Totale}   &                    & \textbf{\textasciitilde{}3,8} & \textbf{2.4L + 1.4S} \\
         \hline
     \end{tabular}
-    \caption{Tavola degli accessi — Assegna camera/e a prenotazione}
+    \caption{Tavola degli accessi --- Assegna camera/e a prenotazione}
 \end{table}
+
+Costo giornaliero dell'operazione $= (2{,}4L + 1{,}4S{\times}2) \times 32
+    \approx 166$ accessi/giorno.
 
 \subsection{Cambia stato prenotazione}
 \label{sec:CambiaStato}
+
+Inserisce una nuova riga in \textbf{VARIAZIONE} per registrare un cambio
+di stato (es. Confirmed, CheckedIn). Coerentemente con la decisione presa
+in fase concettuale (nessun attributo \textit{StatoAttuale} su
+\textbf{PRENOTAZIONE}), l'operazione non deve leggere lo storico
+precedente per determinare lo stato corrente: si limita ad aggiungere la
+nuova riga, il che la rende economica nonostante sia, in frequenza, la
+seconda operazione più eseguita del sistema (92/g).
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.55\textwidth]{../resources/nav/HotelDB_Nav_CambiaStato.jpeg}
+    \caption{Schema di navigazione --- Cambia stato prenotazione}
+\end{figure}
 
 \begin{table}[H]
     \centering
@@ -514,31 +611,39 @@ Costo totale delle operazioni = (4L + 2S * 2) * 23 = 184 al gg
     \begin{tabular}{|l|c|c|c|}
         \hline
         \rowcolor{headerblue}
-        \textbf{Concetto}   & \textbf{Costrutto} & \textbf{Accessi} & \textbf{Tipo} \\
+        \textbf{Concetto}   & \textbf{Costrutto} & \textbf{Accessi} & \textbf{Tipo}    \\
         \hline
-        PRENOTAZIONE        & E                  & 1                & L             \\
-        STATO\_PRENOTAZIONE & E                  & 1                & L             \\
-        VARIAZIONE          & A                  & 1                & S             \\
+        PRENOTAZIONE        & E                  & 1                & L                \\
+        STATO\_PRENOTAZIONE & E                  & 1                & L                \\
+        VARIAZIONE          & A                  & 1                & S                \\
+        \hline
+        \rowcolor{gray!25}
+        \textbf{Totale}     &                    & \textbf{3}       & \textbf{2L + 1S} \\
         \hline
     \end{tabular}
-    \caption{Tavola degli accessi — Cambia stato prenotazione}
+    \caption{Tavola degli accessi --- Cambia stato prenotazione}
 \end{table}
+
+Costo giornaliero dell'operazione $= (2L + 1S{\times}2) \times 92 = 368$
+accessi/giorno.
 
 \subsection{Registra consumazione servizio}
 \label{sec:RegistraConsumazione}
 
-L'operazione collega CLIENTE a SERVIZIO passando per CONSUMO. Trattandosi
-di un'associazione binaria semplice (CONSUMO è legato solo a CLIENTE, mai
-a PRENOTAZIONE, come da decisione di progettazione concettuale), il
-cammino logico è lineare e non richiede attraversamenti multipli.
-Nonostante sia l'operazione più frequente del sistema (183 occorrenze al
-giorno), il suo costo in accessi resta contenuto: è un buon esempio di
-come alta frequenza non implichi necessariamente alto carico.
+L'operazione collega \textbf{CLIENTE} a \textbf{SERVIZIO} passando per
+\textbf{CONSUMO}. Trattandosi di un'associazione binaria semplice
+(\textbf{CONSUMO} è legato solo a \textbf{CLIENTE}, mai a
+\textbf{PRENOTAZIONE}, come da decisione concettuale), il cammino logico è
+lineare. Nonostante sia l'operazione più frequente del sistema (183/g), il
+costo per esecuzione resta basso: buon esempio di come alta frequenza non
+implichi necessariamente alto costo unitario — a differenza del carico
+\emph{complessivo}, che invece resta comunque significativo proprio a
+causa della frequenza (si veda \cref{sec:sintesiCarico}).
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.55\textwidth]{example-image}
-    \caption{Schema di navigazione — Registra consumazione servizio}
+    \includegraphics[width=0.55\textwidth]{../resources/nav/HotelDB_Nav_RegistraConsumazione.jpeg}
+    \caption{Schema di navigazione --- Registra consumazione servizio}
 \end{figure}
 
 \begin{table}[H]
@@ -557,30 +662,30 @@ come alta frequenza non implichi necessariamente alto carico.
         \textbf{Totale}   &                    & \textbf{3}       & \textbf{2L + 1S} \\
         \hline
     \end{tabular}
-    \caption{Tavola degli accessi — Registra consumazione servizio}
+    \caption{Tavola degli accessi --- Registra consumazione servizio}
 \end{table}
 
-\subsection{Consulta disponibilità camere in un intervallo}
-\label{sec:ConsultaDisponibilità}
+Costo giornaliero dell'operazione $= (2L + 1S{\times}2) \times 183 = 732$
+accessi/giorno.
 
-\subsection*{Analisi: criteri di ricerca disponibilità}
+\subsection{Assegna livello loyalty a cliente}
+\label{sec:AssegnaLivello}
 
-La ricerca di camere disponibili può avvenire secondo due criteri, non
-alternativi:
-\begin{itemize}
-    \item per \textbf{tipologia specifica} (es. ``una Deluxe per 2
-          persone''): il filtro agisce su \texttt{NomeTipologia};
-    \item per \textbf{capacità} (es. ``una camera per 2 persone''): il
-          filtro agisce solo sull'attributo \texttt{NumeroLetti} di
-          \textbf{TIPOLOGIA\_CAMERA}, indipendentemente dalla tipologia
-          specifica.
-\end{itemize}
-Entrambi i casi sono coperti dagli attributi già presenti in
-TIPOLOGIA\_CAMERA, senza necessità di modifiche allo schema concettuale.
-Ai fini della tavola degli accessi si considera il caso più oneroso, ossia
-la ricerca per capacità, che nel caso peggiore coinvolge camere di più
-tipologie (fino alle 80 camere totali), anziché il sottoinsieme di una
-singola tipologia (in media 80/8 $=$ 10 camere).
+Inserisce una nuova riga in \textbf{APPARTENENZA} con la
+\texttt{DataInizio} del nuovo livello. Stessa struttura di
+\textit{Cambia stato prenotazione}: nessuna lettura dello storico
+precedente è necessaria per la scrittura, perché la decisione di non
+introdurre \texttt{DataFine} (presa in fase concettuale) rende
+l'operazione di scrittura indipendente dalle righe già presenti --- il
+costo di quella scelta di minimalità si paga solo in lettura, nelle
+operazioni che devono \emph{ricostruire} il livello corrente
+(\cref{sec:CalcolaSconto}), non qui.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.55\textwidth]{../resources/nav/HotelDB_Nav_AssegnaLivelloLoyalty.jpeg}
+    \caption{Schema di navigazione --- Assegna livello loyalty a cliente}
+\end{figure}
 
 \begin{table}[H]
     \centering
@@ -588,33 +693,142 @@ singola tipologia (in media 80/8 $=$ 10 camere).
     \begin{tabular}{|l|c|c|c|}
         \hline
         \rowcolor{headerblue}
-        \textbf{Concetto} & \textbf{Costrutto} & \textbf{Accessi}       & \textbf{Tipo} \\
+        \textbf{Concetto} & \textbf{Costrutto} & \textbf{Accessi} & \textbf{Tipo}    \\
         \hline
-        CAMERA            & E                  & 8                      & L             \\
-        ASSEGNAZIONE      & A                  & \textasciitilde{}15-30 & L             \\
-        PRENOTAZIONE      & E                  & \textasciitilde{}15-30 & L             \\
+        CLIENTE           & E                  & 1                & L                \\
+        LIVELLO\_LOYALTY  & E                  & 1                & L                \\
+        APPARTENENZA      & A                  & 1                & S                \\
+        \hline
+        \rowcolor{gray!25}
+        \textbf{Totale}   &                    & \textbf{3}       & \textbf{2L + 1S} \\
         \hline
     \end{tabular}
-    \caption{Tavola degli accessi — Consulta disponibilità camere}
+    \caption{Tavola degli accessi --- Assegna livello loyalty a cliente}
 \end{table}
 
+Costo giornaliero dell'operazione $= (2L + 1S{\times}2) \times 17 = 68$
+accessi/giorno.
+
+\subsection{Calcola sconto loyalty per prenotazione}
+\label{sec:CalcolaSconto}
+
+Operazione automatica del Sistema, eseguita una volta per ogni
+\textit{Crea prenotazione} (stessa frequenza, 23/g): dato un cliente,
+risale tramite \textbf{APPARTENENZA} al \textbf{LIVELLO\_LOYALTY}
+correntemente posseduto per leggerne \texttt{ScontoPercentuale}. In
+assenza dell'attributo \texttt{DataFine} (decisione concettuale
+confermata), individuare la riga ``corrente'' di \textbf{APPARTENENZA}
+richiede una interrogazione sullo storico ordinato per
+\texttt{DataInizio} (es. \texttt{ORDER BY DataInizio DESC LIMIT 1}, o
+\texttt{LEAD()} se serve anche la data di fine derivata). Si stima un
+numero medio di righe coinvolte pari al rapporto
+$\text{APPARTENENZA}/\text{CLIENTE} = 19.000/14.500 \approx 1{,}3$.
+
+Questa è \textbf{l'operazione al centro del punto aperto di
+    Progettazione Logica} già segnalato nella relazione (denormalizzare
+\texttt{ScontoPercentuale} su \textbf{CLIENTE} oppure no): la tavola qui
+sotto è deliberatamente la versione \emph{senza ridondanza} (schema
+concettuale attuale), che servirà come termine di paragone nell'Analisi
+delle ridondanze (\cref{sec:analisi-ridondanze} --- da compilare), dove
+verrà confrontata con la versione con \texttt{ScontoPercentuale}
+duplicato su \textbf{CLIENTE} (1 sola lettura, ma un aggiornamento in più
+su ogni \textit{Assegna livello loyalty}, \cref{sec:AssegnaLivello}).
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.55\textwidth]{../resources/nav/HotelDB_Nav_CalcolaScontoLoyalty.jpeg}
+    \caption{Schema di navigazione --- Calcola sconto loyalty per prenotazione (senza ridondanza)}
+\end{figure}
+
+\begin{table}[H]
+    \centering
+    \rowcolors{2}{gray!10}{white}
+    \begin{tabular}{|l|c|c|c|}
+        \hline
+        \rowcolor{headerblue}
+        \textbf{Concetto} & \textbf{Costrutto} & \textbf{Accessi}              & \textbf{Tipo}    \\
+        \hline
+        CLIENTE           & E                  & 1                             & L                \\
+        APPARTENENZA      & A                  & 1,3                           & L                \\
+        LIVELLO\_LOYALTY  & E                  & 1                             & L                \\
+        \hline
+        \rowcolor{gray!25}
+        \textbf{Totale}   &                    & \textbf{\textasciitilde{}3,3} & \textbf{tutti L} \\
+        \hline
+    \end{tabular}
+    \caption{Tavola degli accessi --- Calcola sconto loyalty (senza ridondanza)}
+\end{table}
+
+Costo giornaliero dell'operazione $\approx 3{,}3 \times 23 \approx 76$
+accessi/giorno (baseline senza ridondanza).
+
+\subsection{Aggiorna stato camera}
+\label{sec:AggiornaStatoCamera}
+
+Localizza una \textbf{CAMERA} tramite il suo identificativo e ne
+aggiorna l'attributo \texttt{Stato}. Nessuna associazione coinvolta: è,
+insieme a \textit{Registra nuovo cliente}, l'operazione strutturalmente
+più semplice della tavola --- utile a titolo di confronto con
+\textit{Registra consumazione servizio}: stessa osservazione, frequenza
+alta (46/g, $\sim$2 per prenotazione per check-in/out) ma costo unitario
+minimo.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.40\textwidth]{../resources/nav/HotelDB_Nav_AggiornaStatoCamera.jpeg}
+    \caption{Schema di navigazione --- Aggiorna stato camera}
+\end{figure}
+
+\begin{table}[H]
+    \centering
+    \rowcolors{2}{gray!10}{white}
+    \begin{tabular}{|l|c|c|c|}
+        \hline
+        \rowcolor{headerblue}
+        \textbf{Concetto} & \textbf{Costrutto} & \textbf{Accessi} & \textbf{Tipo}    \\
+        \hline
+        CAMERA            & E                  & 1                & L                \\
+        CAMERA            & E                  & 1                & S                \\
+        \hline
+        \rowcolor{gray!25}
+        \textbf{Totale}   &                    & \textbf{2}       & \textbf{1L + 1S} \\
+        \hline
+    \end{tabular}
+    \caption{Tavola degli accessi --- Aggiorna stato camera}
+\end{table}
+
+Costo giornaliero dell'operazione $= (1L + 1S{\times}2) \times 46 = 138$
+accessi/giorno.
+
 \subsection{Consulta disponibilità camere in un intervallo}
+\label{sec:ConsultaDisponibilita}
+
+\subsubsection*{Analisi: criteri di ricerca disponibilità}
+La ricerca di camere disponibili può avvenire secondo due criteri, non
+alternativi: per \textbf{tipologia specifica} (filtro su
+\texttt{NomeTipologia}) o per \textbf{capacità} (filtro solo su
+\texttt{NumeroLetti} di \textbf{TIPOLOGIA\_CAMERA}, indipendentemente
+dalla tipologia). Entrambi sono coperti dagli attributi già presenti in
+\textbf{TIPOLOGIA\_CAMERA}. Ai fini della tavola degli accessi si
+considera il caso più oneroso --- ricerca per capacità, che nel caso
+peggiore coinvolge tutte le 80 camere anziché il sottoinsieme di una
+singola tipologia (in media $80/8=10$ camere).
 
 L'operazione richiede di incrociare ogni camera con le prenotazioni
 esistenti che si sovrappongono al periodo richiesto, leggendo
-\texttt{dataCheckIn} e \texttt{dataCheckOut} di ciascuna. È l'unica
-operazione tra quelle analizzate il cui costo non deriva direttamente da
-un rapporto fisso nella tavola dei volumi, ma da un'assunzione sulla
-distribuzione temporale delle prenotazioni: si stima che, per un dato
-intervallo di ricerca, siano coinvolte mediamente 15-30 righe di
-ASSEGNAZIONE/PRENOTAZIONE su un totale storico di 35.000/25.000. Questo
-la rende un'ottima candidata a beneficiare di un indice composito su
+\texttt{dataCheckIn}/\texttt{dataCheckOut}. È l'unica operazione il cui
+costo non deriva da un rapporto fisso della tavola dei volumi, ma da
+un'assunzione sulla distribuzione temporale delle prenotazioni: si stima
+che, per un dato intervallo, siano coinvolte mediamente 15--30 righe di
+\textbf{ASSEGNAZIONE}/\textbf{PRENOTAZIONE} (qui usato il valore medio
+$\approx$23 per il calcolo puntuale) su un totale storico di
+35.000/25.000. Ottima candidata a beneficiare di un indice composito su
 (\texttt{dataCheckIn}, \texttt{dataCheckOut}) in fase SQL.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.55\textwidth]{example-image}
-    \caption{Schema di navigazione — Consulta disponibilità camere}
+    \includegraphics[width=0.55\textwidth]{../resources/nav/HotelDB_Nav_ConsultaDisponibilita.jpeg}
+    \caption{Schema di navigazione --- Consulta disponibilità camere}
 \end{figure}
 
 \begin{table}[H]
@@ -633,8 +847,287 @@ la rende un'ottima candidata a beneficiare di un indice composito su
         \textbf{Totale}   &                    & \textbf{\textasciitilde{}110-140} & \textbf{tutti L} \\
         \hline
     \end{tabular}
-    \caption{Tavola degli accessi — Consulta disponibilità camere}
+    \caption{Tavola degli accessi --- Consulta disponibilità camere}
 \end{table}
+
+Costo giornaliero dell'operazione $\approx 126 \times 50 \approx 6.300$
+accessi/giorno (range 5.500--7.000 a seconda della distribuzione
+temporale reale delle prenotazioni). Come si vedrà in
+\cref{sec:sintesiCarico}, questa singola operazione domina il carico
+complessivo del sistema pur avendo una frequenza (50/g) tutt'altro che
+estrema: è il caso più chiaro di ``costo per accesso alto $\times$
+frequenza moderata = carico totale dominante''.
+
+\subsection{Consulta prenotazioni per data}
+\label{sec:ConsultaPrenotazioniData}
+
+Il report richiesto (relazione, Requisiti funzionali --- Reportistica) è
+la lista delle \textbf{prenotazioni} con soggiorno attivo in una data
+specifica, o in un intervallo se richiesto: il filtro è quindi
+sull'\textbf{sovrapposizione temporale} tra
+[\texttt{dataCheckIn}, \texttt{dataCheckOut}) e la data/intervallo
+richiesti, non sul solo \texttt{dataCheckIn}. Si tratta dello stesso tipo
+di interrogazione già analizzato in
+\cref{sec:ConsultaDisponibilita} (sovrapposizione di intervalli), qui
+applicata nel verso opposto: lì si cercano le camere \emph{non} coinvolte
+in prenotazioni sovrapposte, qui si cercano direttamente le prenotazioni
+sovrapposte. Si riusa quindi la stessa assunzione statistica --- 15--30
+righe coinvolte, punto medio $\approx$23 --- anziché il tasso di nuove
+prenotazioni giornaliere usato in una prima stima poi rivista.
+
+\textit{Nota sullo scope}: il risultato è un elenco di prenotazioni, non
+di camere; la vista ``camere occupate in un intervallo'' non è tra i
+report richiesti (relazione, requisiti funzionali) e non viene quindi
+modellata come operazione separata, per non introdurre complessità non
+richiesta (Regola 3). Poiché non esiste un attributo
+\textit{StatoAttuale} su \textbf{PRENOTAZIONE}, per mostrare lo stato di
+ciascuna prenotazione occorre risalire alla riga più recente di
+\textbf{VARIAZIONE} per ciascuna, assistita da un indice su
+(\texttt{idPrenotazione}, \texttt{DataOraCambio}). Si assume, come
+default, che vengano mostrate le prenotazioni indipendentemente dal loro
+stato (compresa una eventuale ``Cancelled''), lasciando alla colonna
+stato la distinzione visiva --- da confermare se invece va escluso un
+sottoinsieme di stati.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.55\textwidth]{../resources/nav/HotelDB_Nav_ConsultaPrenotazioniData.jpeg}
+    \caption{Schema di navigazione --- Consulta prenotazioni per data}
+\end{figure}
+
+\begin{table}[H]
+    \centering
+    \rowcolors{2}{gray!10}{white}
+    \begin{tabular}{|l|c|c|c|}
+        \hline
+        \rowcolor{headerblue}
+        \textbf{Concetto}   & \textbf{Costrutto} & \textbf{Accessi}             & \textbf{Tipo}    \\
+        \hline
+        PRENOTAZIONE        & E                  & \textasciitilde{}15-30 (23)  & L                \\
+        VARIAZIONE          & A                  & \textasciitilde{}15-30 (23)  & L                \\
+        STATO\_PRENOTAZIONE & E                  & 1                            & L                \\
+        \hline
+        \rowcolor{gray!25}
+        \textbf{Totale}     &                    & \textbf{\textasciitilde{}47} & \textbf{tutti L} \\
+        \hline
+    \end{tabular}
+    \caption{Tavola degli accessi --- Consulta prenotazioni per data}
+\end{table}
+
+Costo giornaliero dell'operazione $\approx 47 \times 10 \approx 470$
+accessi/giorno. Per una richiesta su intervallo (anziché giorno singolo)
+il numero di prenotazioni coinvolte può crescere con l'ampiezza
+dell'intervallo; in assenza di un'assunzione sulla distribuzione più
+precisa, si mantiene questa stima come caso base, da rivedere se in fase
+di test emergano intervalli tipici molto ampi.
+
+\subsection{Assegna ruolo a utente}
+\label{sec:AssegnaRuolo}
+
+Inserisce una riga in \textbf{ATTRIBUZIONE}. Frequenza dichiarata in
+\cref{tab:operazioni} come 2/mese; per coerenza con le altre tavole si
+converte in $2/30 \approx 0{,}07$/giorno.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.55\textwidth]{../resources/nav/HotelDB_Nav_AssegnaRuolo.jpeg}
+    \caption{Schema di navigazione --- Assegna ruolo a utente}
+\end{figure}
+
+\begin{table}[H]
+    \centering
+    \rowcolors{2}{gray!10}{white}
+    \begin{tabular}{|l|c|c|c|}
+        \hline
+        \rowcolor{headerblue}
+        \textbf{Concetto} & \textbf{Costrutto} & \textbf{Accessi} & \textbf{Tipo}    \\
+        \hline
+        UTENTE            & E                  & 1                & L                \\
+        RUOLO             & E                  & 1                & L                \\
+        ATTRIBUZIONE      & A                  & 1                & S                \\
+        \hline
+        \rowcolor{gray!25}
+        \textbf{Totale}   &                    & \textbf{3}       & \textbf{2L + 1S} \\
+        \hline
+    \end{tabular}
+    \caption{Tavola degli accessi --- Assegna ruolo a utente}
+\end{table}
+
+Costo giornaliero dell'operazione $\approx (2L + 1S{\times}2) \times
+    0{,}07 \approx 0{,}3$ accessi/giorno --- trascurabile, coerente con il
+volume totale di sole 22 istanze di \textbf{ATTRIBUZIONE} stimate.
+
+\subsection{Crea/modifica tipologia camera}
+\label{sec:TipologiaCameraOp}
+
+Configurazione quasi statica (frequenza dichiarata ``rara''). Si
+modella il caso più oneroso (modifica: lettura seguita da scrittura).
+\textit{Nota}: in assenza di un valore numerico nella tavola delle
+operazioni, si adotta una stima puramente simbolica di
+$\sim$1/mese ($\approx$0,03/giorno) al solo scopo di includerla nella
+sintesi comparativa finale --- il valore esatto non altera la
+conclusione, perché il carico resta comunque trascurabile per qualunque
+cifra ragionevole.
+
+\begin{table}[H]
+    \centering
+    \rowcolors{2}{gray!10}{white}
+    \begin{tabular}{|l|c|c|c|}
+        \hline
+        \rowcolor{headerblue}
+        \textbf{Concetto} & \textbf{Costrutto} & \textbf{Accessi} & \textbf{Tipo}    \\
+        \hline
+        TIPOLOGIA\_CAMERA & E                  & 1                & L                \\
+        TIPOLOGIA\_CAMERA & E                  & 1                & S                \\
+        \hline
+        \rowcolor{gray!25}
+        \textbf{Totale}   &                    & \textbf{2}       & \textbf{1L + 1S} \\
+        \hline
+    \end{tabular}
+    \caption{Tavola degli accessi --- Crea/modifica tipologia camera}
+\end{table}
+
+Costo giornaliero (stimato) $\approx 0{,}1$ accessi/giorno.
+
+\subsection{Crea/modifica servizio accessorio}
+\label{sec:ServizioOp}
+
+Stessa struttura e stessa nota metodologica dell'operazione precedente,
+applicata a \textbf{SERVIZIO}.
+
+\begin{table}[H]
+    \centering
+    \rowcolors{2}{gray!10}{white}
+    \begin{tabular}{|l|c|c|c|}
+        \hline
+        \rowcolor{headerblue}
+        \textbf{Concetto} & \textbf{Costrutto} & \textbf{Accessi} & \textbf{Tipo}    \\
+        \hline
+        SERVIZIO          & E                  & 1                & L                \\
+        SERVIZIO          & E                  & 1                & S                \\
+        \hline
+        \rowcolor{gray!25}
+        \textbf{Totale}   &                    & \textbf{2}       & \textbf{1L + 1S} \\
+        \hline
+    \end{tabular}
+    \caption{Tavola degli accessi --- Crea/modifica servizio accessorio}
+\end{table}
+
+Costo giornaliero (stimato) $\approx 0{,}1$ accessi/giorno.
+
+\subsection{Calcola fatturato giornaliero}
+\label{sec:FatturatoGiornaliero}
+
+Operazione batch notturna: aggrega ricavi da prenotazioni concluse
+(check-out avvenuto nella giornata) e consumazioni registrate nella
+giornata. Poiché \textbf{PRENOTAZIONE} non ha un attributo di prezzo
+totale, il ricavo camera va ricostruito per ogni prenotazione conclusa
+tramite \textbf{ASSEGNAZIONE} $\to$ \textbf{CAMERA} $\to$
+\textbf{TIPOLOGIA\_CAMERA} (per \texttt{PrezzoBase}), applicando lo
+sconto loyalty corrente (stesso cammino di \cref{sec:CalcolaSconto}, qui
+in versione batch). Si stima il numero di check-out giornalieri pari al
+tasso medio di nuove prenotazioni ($\approx$23/g, assumendo che quasi
+ogni prenotazione arrivi infine a check-out). Il numero di consumazioni
+giornaliere ($\approx$183) riusa direttamente la stima già validata in
+\cref{sec:RegistraConsumazione}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.65\textwidth]{../resources/nav/HotelDB_Nav_FatturatoGiornaliero.jpeg}
+    \caption{Schema di navigazione --- Calcola fatturato giornaliero}
+\end{figure}
+
+\begin{table}[H]
+    \centering
+    \rowcolors{2}{gray!10}{white}
+    \begin{tabular}{|l|c|c|c|}
+        \hline
+        \rowcolor{headerblue}
+        \textbf{Concetto} & \textbf{Costrutto} & \textbf{Accessi}              & \textbf{Tipo}    \\
+        \hline
+        VARIAZIONE        & A                  & \textasciitilde{}23           & L                \\
+        PRENOTAZIONE      & E                  & \textasciitilde{}23           & L                \\
+        ASSEGNAZIONE      & A                  & \textasciitilde{}32           & L                \\
+        CAMERA            & E                  & \textasciitilde{}32           & L                \\
+        TIPOLOGIA\_CAMERA & E                  & \textasciitilde{}32           & L                \\
+        CLIENTE           & E                  & \textasciitilde{}23           & L                \\
+        APPARTENENZA      & A                  & \textasciitilde{}30           & L                \\
+        LIVELLO\_LOYALTY  & E                  & \textasciitilde{}23           & L                \\
+        CONSUMO           & E                  & \textasciitilde{}183          & L                \\
+        \hline
+        \rowcolor{gray!25}
+        \textbf{Totale}   &                    & \textbf{\textasciitilde{}401} & \textbf{tutti L} \\
+        \hline
+    \end{tabular}
+    \caption{Tavola degli accessi --- Calcola fatturato giornaliero}
+\end{table}
+
+Costo giornaliero dell'operazione $\approx 401 \times 1 = 401$
+accessi/giorno. È un contrasto istruttivo con \textit{Consulta
+    disponibilità}: qui il costo \emph{per esecuzione} è il più alto di
+tutta la tavola, ma la frequenza minima (1/g, essendo un batch notturno)
+lo rende comunque secondario nel carico complessivo del sistema.
+
+\subsection{Sintesi del carico giornaliero e individuazione delle operazioni critiche}
+\label{sec:sintesiCarico}
+
+Con il costo giornaliero calcolato per tutte le operazioni, si applica
+ora la regola 80-20 su dati completi anziché su una selezione a priori.
+
+\begin{table}[H]
+    \centering
+    \rowcolors{2}{gray!10}{white}
+    \small
+    \begin{tabular}{|p{6.2cm}|c|c|}
+        \hline
+        \rowcolor{headerblue}
+        \textbf{Operazione}                     & \textbf{Accessi/g}              & \textbf{\% cumulata} \\
+        \hline
+        Consulta disponibilità camere           & 6.300                           & 70,5\%               \\
+        Registra consumazione servizio          & 732                             & 78,7\%               \\
+        Consulta prenotazioni per data          & 470                             & 84,0\%               \\
+        Calcola fatturato giornaliero           & 401                             & 88,5\%               \\
+        Cambia stato prenotazione               & 368                             & 92,6\%               \\
+        Crea prenotazione                       & 184                             & 94,7\%               \\
+        Assegna camera/e a prenotazione         & 166                             & 96,6\%               \\
+        Aggiorna stato camera                   & 138                             & 98,2\%               \\
+        Calcola sconto loyalty per prenotazione & 76                              & 99,0\%               \\
+        Assegna livello loyalty a cliente       & 68                              & 99,7\%               \\
+        Registra nuovo cliente                  & 32                              & 100,0\%              \\
+        Assegna ruolo a utente                  & 0,3                             & 100,0\%              \\
+        Crea/modifica tipologia camera          & 0,1                             & 100,0\%              \\
+        Crea/modifica servizio accessorio       & 0,1                             & 100,0\%              \\
+        \hline
+        \rowcolor{gray!25}
+        \textbf{Totale sistema}                 & \textbf{\textasciitilde{}8.936} &                      \\
+        \hline
+    \end{tabular}
+    \caption{Carico giornaliero complessivo per operazione, in ordine decrescente}
+    \label{tab:sintesiCarico}
+\end{table}
+
+Applicando rigorosamente la regola 80-20: le prime \textbf{tre}
+operazioni (\textit{Consulta disponibilità camere},
+\textit{Registra consumazione servizio}, \textit{Consulta prenotazioni
+    per data}) coprono da sole l'84\% del carico giornaliero complessivo del
+sistema, pur essendo solo 3 delle 14 operazioni analizzate. Questo
+conferma quantitativamente quanto già osservato qualitativamente in
+precedenza su \textit{Consulta disponibilità camere}, ma la ridimensiona
+correttamente: da sola pesa per il 70,5\% del carico totale, un ordine di
+grandezza sopra qualunque altra operazione.
+
+Le operazioni analizzate in dettaglio nel primo tentativo di questa fase
+(\textit{Crea prenotazione}, \textit{Assegna camera/e},
+\textit{Cambia stato prenotazione}) restano comunque rilevanti per
+frequenza assoluta, ma con i dati completi non rientrano nel nucleo
+dell'80\% del carico: la loro priorità per l'ottimizzazione (indici,
+denormalizzazioni) è quindi secondaria rispetto alle tre sopra indicate.
+Questo verrà tenuto presente nel Raffinamento dello schema e
+nell'Analisi delle ridondanze (in particolare per la scelta su
+\texttt{ScontoPercentuale}, che coinvolge \textit{Calcola sconto loyalty}
+--- 99,0\% cumulato, quindi non prioritaria di per sé, ma comunque parte
+del cammino di \textit{Crea prenotazione} e \textit{Calcola fatturato
+    giornaliero}, entrambe nel nucleo critico).
 
 \chapter{Progettazione dell'Applicazione}
 
