@@ -331,6 +331,17 @@ Si è scelto di non rappresentare la data di fine nello schema perché è un'inf
 \newline
 Introdurre comunque un attributo \textbf{DataFine} avrebbe reso lo schema ridondante, poiché il suo valore sarebbe interamente determinabile da dati già presenti (violando il criterio di \textbf{minimalità} richiesto per uno schema concettuale di qualità), a fronte del solo vantaggio di semplificare leggermente alcune interrogazioni. La derivazione verrà quindi calcolata in fase di traduzione delle operazioni in query SQL (tipicamente con una sotto-interrogazione correlata o una funzione finestra come \texttt{LEAD}), e non richiede modifiche allo schema concettuale.
 \newline
+È stato inoltre confermato, come regola operativa e non come vincolo
+rappresentabile nello schema E/R, che la creazione di un nuovo
+\textbf{CLIENTE} comporta automaticamente l'inserimento di una riga in
+\textbf{appartenenza} con il livello loyalty base e \texttt{DataInizio}
+pari alla data di registrazione: questo garantisce che ogni cliente abbia
+sempre almeno una appartenenza associata, coerentemente con la
+cardinalità (1,N) sopra indicata. Tale automatismo verrà tradotto in fase
+di Progettazione Logica come parte dell'operazione ``Registra nuovo
+cliente'' (\cref{tab:operazioni}), non richiede modifiche allo schema
+concettuale.
+\newline
 Un'osservazione simile si pone per l'attributo \textbf{ScontoPercentuale} di \textbf{LIVELLO\_LOYALTY}: poiché lo sconto applicabile a una prenotazione dipende dal livello loyalty corrente del cliente, alcune interrogazioni frequenti (ad esempio il calcolo dello sconto in fase di creazione di una prenotazione) richiedono di risalire, tramite l'associazione \textbf{appartenenza}, al livello attualmente posseduto. Una possibile ridondanza controllata --- copiare il valore corrente di \textbf{ScontoPercentuale} direttamente su \textbf{CLIENTE}, aggiornandolo a ogni cambio di livello --- verrà valutata esplicitamente nella fase di \textbf{Analisi delle ridondanze} della Progettazione Logica, confrontando il vantaggio in termini di semplicità/costo delle interrogazioni con il rischio di disallineamento tra i due valori. Non viene presa alcuna decisione in questa fase concettuale: lo schema resta privo di questa ridondanza finché l'analisi costi/benefici non la giustificherà esplicitamente.
 
 \begin{figure}[H]
@@ -421,27 +432,29 @@ carico complessivo sul sistema.
     \centering
     \rowcolors{2}{gray!10}{white}
     \small
-    \begin{tabular}{|p{5.7cm}|l|c|c|p{5.2cm}|}
-        \hline
-        \rowcolor{headerblue}
-        \textbf{Operazione}                                                                  & \textbf{Attore} & \textbf{Tipo} & \textbf{Freq.}          & \textbf{Motivazione}                               \\
-        \hline
-        \hyperref[sec:RegistraCliente]{Registra nuovo cliente}                               & Reception       & I             & 8/g                     & Nuovi clienti nel tempo                            \\
-        \hyperref[sec:CreaPrenotazione]{Crea prenotazione}                                   & Reception       & I             & 23/g                    & 25.000 / 1.095 giorni                              \\
-        \hyperref[sec:AssegnaCamera]{Assegna camera/e a prenotazione}                        & Reception       & I             & 32/g                    & ASSEGNAZIONE / 1.095 giorni                        \\
-        \hyperref[sec:CambiaStato]{Cambia stato prenotazione}                                & Reception       & I             & 92/g                    & VARIAZIONE / 1.095 giorni                          \\
-        \hyperref[sec:RegistraConsumazione]{Registra consumazione servizio}                  & Reception       & I             & 183/g                   & CONSUMO / 1.095 giorni                             \\
-        \hyperref[sec:AssegnaLivello]{Assegna livello loyalty a cliente}                     & Reception       & I             & 17/g                    & APPARTENENZA / 1.095 giorni                        \\
-        \hyperref[sec:CalcolaSconto]{Calcola sconto loyalty per prenotazione}                & Sistema         & I             & 23/g                    & Una volta per prenotazione creata                  \\
-        \hyperref[sec:AggiornaStatoCamera]{Aggiorna stato camera}                            & Maintenance     & I             & 46/g                    & \textasciitilde{}2 per prenotazione (check-in/out) \\
-        \hyperref[sec:ConsultaDisponibilita]{Consulta disponibilità camere in un intervallo} & Reception       & I             & 50/g                    & Consultata più volte per prenotazione              \\
-        \hyperref[sec:ConsultaPrenotazioniData]{Consulta prenotazioni per data}              & Reception       & I             & 10/g                    & Controllo giornaliero (soggiorno attivo)           \\
-        \hyperref[sec:AssegnaRuolo]{Assegna ruolo a utente}                                  & Admin           & I             & 0,07/g (2/mese)         & 22 ATTRIBUZIONE totali                             \\
-        \hyperref[sec:TipologiaCameraOp]{Crea/modifica tipologia camera}                     & Admin           & I             & \textasciitilde{}0,03/g & Configurazione quasi statica (stima simbolica)     \\
-        \hyperref[sec:ServizioOp]{Crea/modifica servizio accessorio}                         & Admin           & I             & \textasciitilde{}0,03/g & Configurazione quasi statica (stima simbolica)     \\
-        \hyperref[sec:FatturatoGiornaliero]{Calcola fatturato giornaliero}                   & Accounting      & B             & 1/g                     & Aggregazione notturna automatica                   \\
-        \hline
-    \end{tabular}
+    \makebox[\textwidth][c]{
+        \begin{tabular}{|p{5.7cm}|l|c|c|p{4.5cm}|}
+            \hline
+            \rowcolor{headerblue}
+            \textbf{Operazione}                                                                  & \textbf{Attore} & \textbf{Tipo} & \textbf{Freq.}          & \textbf{Motivazione}                               \\
+            \hline
+            \hyperref[sec:RegistraCliente]{Registra nuovo cliente}                               & Reception       & I             & 8/g                     & Nuovi clienti nel tempo                            \\
+            \hyperref[sec:CreaPrenotazione]{Crea prenotazione}                                   & Reception       & I             & 23/g                    & 25.000 / 1.095 giorni                              \\
+            \hyperref[sec:AssegnaCamera]{Assegna camera/e a prenotazione}                        & Reception       & I             & 32/g                    & ASSEGNAZIONE / 1.095 giorni                        \\
+            \hyperref[sec:CambiaStato]{Cambia stato prenotazione}                                & Reception       & I             & 92/g                    & VARIAZIONE / 1.095 giorni                          \\
+            \hyperref[sec:RegistraConsumazione]{Registra consumazione servizio}                  & Reception       & I             & 183/g                   & CONSUMO / 1.095 giorni                             \\
+            \hyperref[sec:AssegnaLivello]{Assegna livello loyalty a cliente}                     & Reception       & I             & 17/g                    & APPARTENENZA / 1.095 giorni                        \\
+            \hyperref[sec:CalcolaSconto]{Calcola sconto loyalty per prenotazione}                & Sistema         & I             & 23/g                    & Una volta per prenotazione creata                  \\
+            \hyperref[sec:AggiornaStatoCamera]{Aggiorna stato camera}                            & Maintenance     & I             & 46/g                    & \textasciitilde{}2 per prenotazione (check-in/out) \\
+            \hyperref[sec:ConsultaDisponibilita]{Consulta disponibilità camere in un intervallo} & Reception       & I             & 50/g                    & Consultata più volte per prenotazione              \\
+            \hyperref[sec:ConsultaPrenotazioniData]{Consulta prenotazioni per data}              & Reception       & I             & 10/g                    & Controllo giornaliero (soggiorno attivo)           \\
+            \hyperref[sec:AssegnaRuolo]{Assegna ruolo a utente}                                  & Admin           & I             & 0,07/g (2/mese)         & 22 ATTRIBUZIONE totali                             \\
+            \hyperref[sec:TipologiaCameraOp]{Crea/modifica tipologia camera}                     & Admin           & I             & \textasciitilde{}0,03/g & Configurazione quasi statica (stima simbolica)     \\
+            \hyperref[sec:ServizioOp]{Crea/modifica servizio accessorio}                         & Admin           & I             & \textasciitilde{}0,03/g & Configurazione quasi statica (stima simbolica)     \\
+            \hyperref[sec:FatturatoGiornaliero]{Calcola fatturato giornaliero}                   & Accounting      & B             & 1/g                     & Aggregazione notturna automatica                   \\
+            \hline
+        \end{tabular}
+    }
     \caption{Operazioni principali e stima della frequenza}
     \label{tab:operazioni}
 \end{table}
@@ -475,15 +488,26 @@ Convenzioni adottate in tutta la sezione:
 \subsection{Registra nuovo cliente}
 \label{sec:RegistraCliente}
 
-Operazione di sola inserzione: crea una nuova istanza di \textbf{PERSONA}
-e la corrispondente istanza di \textbf{CLIENTE} lungo la generalizzazione
-parziale sovrapposta descritta in Progettazione Concettuale. Non coinvolge
-alcuna associazione: è l'operazione più semplice della tavola, un buon
-punto di riferimento per il limite inferiore di costo.
+Operazione di inserzione: crea una nuova istanza di \textbf{PERSONA} e la
+corrispondente istanza di \textbf{CLIENTE} lungo la generalizzazione
+parziale sovrapposta descritta in Progettazione Concettuale. Poiché la
+cardinalità (1,N) sul lato \textbf{CLIENTE} dell'associazione
+\textbf{appartenenza} impone che ogni cliente possieda sempre almeno un
+livello loyalty, la creazione di un nuovo cliente comporta automaticamente
+l'inserimento di una riga in \textbf{APPARTENENZA} con il livello loyalty
+base (es. ``Bronze'') e \texttt{DataInizio} pari alla data di
+registrazione --- lo stesso pattern già adottato per l'inserimento
+automatico della riga ``Requested'' in \textbf{VARIAZIONE} alla creazione
+di una \textbf{PRENOTAZIONE} (\cref{sec:CreaPrenotazione}). Questo
+automatismo è stato individuato durante la costruzione degli schemi di
+navigazione, come inconsistenza tra lo schema concettuale chiuso e la
+tavola degli accessi originariamente redatta; è documentato anche in
+Progettazione Concettuale (si veda la nota aggiunta alla sottosezione
+``Storico dei Livelli Loyalty'').
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.45\textwidth]{../resources/nav/HotelDB_Nav_RegistraCliente.jpeg}
+    \includegraphics[width=0.55\textwidth]{../resources/nav/HotelDB_Nav_RegistraCliente.jpeg}
     \caption{Schema di navigazione --- Registra nuovo cliente}
 \end{figure}
 
@@ -493,19 +517,21 @@ punto di riferimento per il limite inferiore di costo.
     \begin{tabular}{|l|c|c|c|}
         \hline
         \rowcolor{headerblue}
-        \textbf{Concetto} & \textbf{Costrutto} & \textbf{Accessi} & \textbf{Tipo} \\
+        \textbf{Concetto} & \textbf{Costrutto} & \textbf{Accessi} & \textbf{Tipo}    \\
         \hline
-        PERSONA           & E                  & 1                & S             \\
-        CLIENTE           & E                  & 1                & S             \\
+        PERSONA           & E                  & 1                & S                \\
+        CLIENTE           & E                  & 1                & S                \\
+        LIVELLO\_LOYALTY  & E                  & 1                & L                \\
+        APPARTENENZA      & A                  & 1                & S                \\
         \hline
         \rowcolor{gray!25}
-        \textbf{Totale}   &                    & \textbf{2}       & \textbf{2S}   \\
+        \textbf{Totale}   &                    & \textbf{4}       & \textbf{1L + 3S} \\
         \hline
     \end{tabular}
     \caption{Tavola degli accessi --- Registra nuovo cliente}
 \end{table}
 
-Costo giornaliero dell'operazione $= (0L + 2S{\times}2) \times 8 = 32$
+Costo giornaliero dell'operazione $= (1L + 3S{\times}2) \times 8 = 56$
 accessi/giorno.
 
 \subsection{Crea prenotazione}
@@ -558,7 +584,7 @@ accessi/giorno.
 Associa una o più camere disponibili a una prenotazione già creata,
 scrivendo altrettante righe in \textbf{ASSEGNAZIONE}. Il numero medio di
 camere per prenotazione si stima dal rapporto
-$\text{ASSEGNAZIONE}/\text{PRENOTAZIONE} = 35.000/25.000 = 1{,}4$.
+${ASSEGNAZIONE}/{PRENOTAZIONE} = 35.000/25.000 = 1{,}4$.
 
 \begin{figure}[H]
     \centering
@@ -722,7 +748,7 @@ richiede una interrogazione sullo storico ordinato per
 \texttt{DataInizio} (es. \texttt{ORDER BY DataInizio DESC LIMIT 1}, o
 \texttt{LEAD()} se serve anche la data di fine derivata). Si stima un
 numero medio di righe coinvolte pari al rapporto
-$\text{APPARTENENZA}/\text{CLIENTE} = 19.000/14.500 \approx 1{,}3$.
+${APPARTENENZA}/{CLIENTE} = 19.000/14.500 \approx 1{,}3$.
 
 Questa è \textbf{l'operazione al centro del punto aperto di
     Progettazione Logica} già segnalato nella relazione (denormalizzare
@@ -824,13 +850,13 @@ che, per un dato intervallo, siano coinvolte mediamente 15--30 righe di
 $\approx$23 per il calcolo puntuale) su un totale storico di
 35.000/25.000. Ottima candidata a beneficiare di un indice composito su
 (\texttt{dataCheckIn}, \texttt{dataCheckOut}) in fase SQL.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.55\textwidth]{../resources/nav/HotelDB_Nav_ConsultaDisponibilita.jpeg}
-    \caption{Schema di navigazione --- Consulta disponibilità camere}
-\end{figure}
-
+\iffalse
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.55\textwidth]{../resources/nav/HotelDB_Nav_ConsultaDisponibilita.jpeg}
+        \caption{Schema di navigazione --- Consulta disponibilità camere}
+    \end{figure}
+\fi
 \begin{table}[H]
     \centering
     \rowcolors{2}{gray!10}{white}
@@ -888,13 +914,13 @@ default, che vengano mostrate le prenotazioni indipendentemente dal loro
 stato (compresa una eventuale ``Cancelled''), lasciando alla colonna
 stato la distinzione visiva --- da confermare se invece va escluso un
 sottoinsieme di stati.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.55\textwidth]{../resources/nav/HotelDB_Nav_ConsultaPrenotazioniData.jpeg}
-    \caption{Schema di navigazione --- Consulta prenotazioni per data}
-\end{figure}
-
+\iffalse
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.55\textwidth]{../resources/nav/HotelDB_Nav_ConsultaPrenotazioniData.jpeg}
+        \caption{Schema di navigazione --- Consulta prenotazioni per data}
+    \end{figure}
+\fi
 \begin{table}[H]
     \centering
     \rowcolors{2}{gray!10}{white}
@@ -1030,13 +1056,13 @@ tasso medio di nuove prenotazioni ($\approx$23/g, assumendo che quasi
 ogni prenotazione arrivi infine a check-out). Il numero di consumazioni
 giornaliere ($\approx$183) riusa direttamente la stima già validata in
 \cref{sec:RegistraConsumazione}.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.65\textwidth]{../resources/nav/HotelDB_Nav_FatturatoGiornaliero.jpeg}
-    \caption{Schema di navigazione --- Calcola fatturato giornaliero}
-\end{figure}
-
+\iffalse
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.65\textwidth]{../resources/nav/HotelDB_Nav_FatturatoGiornaliero.jpeg}
+        \caption{Schema di navigazione --- Calcola fatturato giornaliero}
+    \end{figure}
+\fi
 \begin{table}[H]
     \centering
     \rowcolors{2}{gray!10}{white}
@@ -1093,13 +1119,13 @@ ora la regola 80-20 su dati completi anziché su una selezione a priori.
         Aggiorna stato camera                   & 138                             & 98,2\%               \\
         Calcola sconto loyalty per prenotazione & 76                              & 99,0\%               \\
         Assegna livello loyalty a cliente       & 68                              & 99,7\%               \\
-        Registra nuovo cliente                  & 32                              & 100,0\%              \\
+        Registra nuovo cliente                  & 56                              & 100,0\%              \\
         Assegna ruolo a utente                  & 0,3                             & 100,0\%              \\
         Crea/modifica tipologia camera          & 0,1                             & 100,0\%              \\
         Crea/modifica servizio accessorio       & 0,1                             & 100,0\%              \\
         \hline
         \rowcolor{gray!25}
-        \textbf{Totale sistema}                 & \textbf{\textasciitilde{}8.936} &                      \\
+        \textbf{Totale sistema}                 & \textbf{\textasciitilde{}8.960} &                      \\
         \hline
     \end{tabular}
     \caption{Carico giornaliero complessivo per operazione, in ordine decrescente}
@@ -1109,7 +1135,7 @@ ora la regola 80-20 su dati completi anziché su una selezione a priori.
 Applicando rigorosamente la regola 80-20: le prime \textbf{tre}
 operazioni (\textit{Consulta disponibilità camere},
 \textit{Registra consumazione servizio}, \textit{Consulta prenotazioni
-    per data}) coprono da sole l'84\% del carico giornaliero complessivo del
+    per data}) coprono da sole l'83,7\% del carico giornaliero complessivo del
 sistema, pur essendo solo 3 delle 14 operazioni analizzate. Questo
 conferma quantitativamente quanto già osservato qualitativamente in
 precedenza su \textit{Consulta disponibilità camere}, ma la ridimensiona
