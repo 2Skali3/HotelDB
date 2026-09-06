@@ -431,11 +431,16 @@ quindi gestito tramite controlli applicativi.
 \medskip
 \newline
 Si è scelto un modello di \textbf{pagamento unico e contestuale}: ogni
-prenotazione o consumazione ammette al più un pagamento, effettuato nello
+prenotazione o consumazione ammette al massimo un pagamento, effettuato nello
 stesso momento in cui l'evento viene registrato. Pagamenti parziali,
 multipli o differiti nel tempo non sono supportati in questa versione del
 progetto ma con possibile estensione
 futura non prevista nell'ambito attuale.
+\newline
+Si è scelto inoltre che in caso di cancellazione o rifiuto successivo, la gestione dell'eventuale
+\underline{rimborso è considerata un processo operativo esterno allo schema} (fuori
+scope in questa versione, semplificazione dichiarata analoga a quella già
+adottata per i pagamenti parziali/multipli).
 \medskip
 \newline
 L'attributo \textbf{MetodoPagamento} è stato modellato come attributo a
@@ -456,7 +461,7 @@ consumazione servizio'' --- lo stesso trattamento già riservato a
 
 \begin{figure}[H]
     \centering
-    \includegraphics[angle=0,width=\textwidth]{../resources/ER/HotelDB_ER_Pagamento.jpeg}
+    \includegraphics[angle=0,width=0.85\textwidth]{../resources/ER/HotelDB_ER_Pagamento.jpeg}
     \caption{Schema E/R Entità Pagamento}
 \end{figure}
 
@@ -471,29 +476,32 @@ il numero di istanze previste, secondo la tavola dei volumi.
 \begin{table}[H]
     \centering
     \rowcolors{2}{gray!10}{white}
-    \begin{tabular}{|l|c|>{\centering\arraybackslash}p{1.7cm}|p{6.5cm}|}
-        \hline
-        \rowcolor{headerblue}
-        \textbf{Concetto}   & \textbf{Costrutto} & \textbf{Numero Stimato} & \textbf{Motivazione}                                                                                \\
-        \hline
-        PERSONA             & E                  & 15.000                  & Clienti + personale accumulato nel tempo                                                            \\
-        CLIENTE             & E                  & 14.500                  & Clientela storica su più anni                                                                       \\
-        UTENTE              & E                  & 18                      & Personale interno                                                                                   \\
-        RUOLO               & E                  & 4                       & Admin, Reception, Accounting, Maintenance                                                           \\
-        ATTRIBUZIONE        & A                  & 22                      & Coppie Utente-Ruolo; pochi utenti con più di un ruolo                                               \\
-        TIPOLOGIA\_CAMERA   & E                  & 8                       & Single, Double Standard, Double Deluxe, Suite...                                                    \\
-        CAMERA              & E                  & 80                      & Hotel di medie dimensioni                                                                           \\
-        LIVELLO\_LOYALTY    & E                  & 4                       & Bronze, Silver, Gold, Platinum                                                                      \\
-        APPARTENENZA        & A                  & 19.000                  & Ogni cliente passa in media per 1-2 livelli nel tempo                                               \\
-        PRENOTAZIONE        & E                  & 25.000                  & \textasciitilde{}8.000/anno $\times$ 3 anni                                                         \\
-        ASSEGNAZIONE        & A                  & 35.000                  & Alcune prenotazioni includono più camere                                                            \\
-        STATO\_PRENOTAZIONE & E                  & 5                       & Requested, Confirmed, Cancelled, CheckedIn, CheckedOut                                              \\
-        VARIAZIONE          & A                  & 100.000                 & \textasciitilde{}4 cambi di stato per prenotazione (storico stati)                                  \\
-        SERVIZIO            & E                  & 15                      & Colazione, minibar, noleggio biciclette...                                                          \\
-        CONSUMO             & E                  & 200.000                 & Più consumi per soggiorno                                                                           \\
-        PAGAMENTO           & E                  & 225.000                 & PRENOTAZIONE + CONSUMO (assunzione: quasi ogni prenotazione/consumazione ha un pagamento associato) \\
-        \hline
-    \end{tabular}
+    \makebox[\textwidth][c]{
+        \begin{tabular}{|l|c|>{\centering\arraybackslash}p{1.7cm}|p{6.7cm}|}
+            \hline
+            \rowcolor{headerblue}
+            \textbf{Concetto}    & \textbf{Costrutto} & \textbf{Numero Stimato} & \textbf{Motivazione}                                                                          \\
+            \hline
+            PERSONA              & E                  & 15.000                  & Clienti + personale accumulato nel tempo                                                      \\
+            CLIENTE              & E                  & 14.500                  & Clientela storica su più anni                                                                 \\
+            UTENTE               & E                  & 18                      & Personale interno                                                                             \\
+            RUOLO                & E                  & 4                       & Admin, Reception, Accounting, Maintenance                                                     \\
+            ATTRIBUZIONE         & A                  & 22                      & Coppie Utente-Ruolo; pochi utenti con più di un ruolo                                         \\
+            TIPOLOGIA\_CAMERA    & E                  & 8                       & Single, Double Standard, Double Deluxe, Suite...                                              \\
+            CAMERA               & E                  & 80                      & Hotel di medie dimensioni                                                                     \\
+            LIVELLO\_LOYALTY     & E                  & 4                       & Bronze, Silver, Gold, Platinum                                                                \\
+            APPARTENENZA         & A                  & 19.000                  & Ogni cliente passa in media per 1-2 livelli nel tempo                                         \\
+            PRENOTAZIONE         & E                  & 25.000                  & \textasciitilde{}8.000/anno $\times$ 3 anni                                                   \\
+            ASSEGNAZIONE         & A                  & 35.000                  & Alcune prenotazioni includono più camere                                                      \\
+            RICHIESTA\_TIPOLOGIA & A                  & 25.000                  & Ogni stanza prenotata avrà una richiesta tipologia che precede                                \\
+            STATO\_PRENOTAZIONE  & E                  & 5                       & Requested, Confirmed, Cancelled, CheckedIn, CheckedOut                                        \\
+            VARIAZIONE           & A                  & 100.000                 & \textasciitilde{}4 cambi di stato per prenotazione (storico stati)                            \\
+            SERVIZIO             & E                  & 15                      & Colazione, minibar, noleggio biciclette...                                                    \\
+            CONSUMO              & E                  & 200.000                 & Più consumi per soggiorno                                                                     \\
+            PAGAMENTO            & E                  & 225.000                 & PRENOTAZIONE + CONSUMO (assunzione: ogni prenotazione/consumazione ha un pagamento associato) \\
+            \hline
+        \end{tabular}
+    }
     \caption{Stima dei volumi}
     \label{tab:volumi}
 \end{table}
@@ -543,6 +551,8 @@ carico complessivo sul sistema.
     \label{tab:operazioni}
 \end{table}
 
+\newpage
+
 \section{Schemi di navigazione e tabelle degli accessi}
 \label{sec:accessi}
 
@@ -560,6 +570,8 @@ Convenzioni adottate in tutta la sezione:
           statistica adottata è dichiarata esplicitamente nel paragrafo di
           analisi che ne fa uso.
 \end{itemize}
+
+\newpage
 
 \subsection{Registra nuovo cliente}
 \label{sec:RegistraCliente}
@@ -603,30 +615,42 @@ registrazione.
 Costo giornaliero dell'operazione $= (1L + 3S{\times}2) \times 8 = 56$
 accessi/giorno.
 
+\newpage
+
 \subsection{Crea prenotazione}
 \label{sec:CreaPrenotazione}
 
 L'operazione crea una \textbf{PRENOTAZIONE} per un \textbf{CLIENTE}
-esistente e, come già detto nella fase concettuale, inserisce
-automaticamente una riga in \textbf{VARIAZIONE} con stato ``Requested'':
-per questo motivo l'operazione tocca anche \textbf{STATO\_PRENOTAZIONE}
-(per recuperare l'id dello stato ``Requested") pur non
-modificandolo. La lettura di \textbf{APPARTENENZA}/\textbf{LIVELLO\_LOYALTY}
-serve a determinare lo sconto loyalty da applicare.
+esistente e, contestualmente, registra tre informazioni collegate:
+la richiesta di tipologia del cliente (\textbf{RICHIESTA\_TIPOLOGIA},
+con attributo \texttt{NumeroRichiesto}), lo stato iniziale
+``Requested'' (riga in \textbf{VARIAZIONE}, dopo aver recuperato
+l'id dello stato da \textbf{STATO\_PRENOTAZIONE}) e il pagamento
+contestuale (\textbf{PAGAMENTO}).
 \medskip
 \newline
-\underline{Calcola sconto Loyalty} è un'operazione automatica del Sistema, eseguita una volta per ogni \textit{Crea prenotazione} (stessa frequenza, 23/g):
-\smallskip
+\underline{Calcola sconto Loyalty} resta un'operazione automatica del
+Sistema, eseguita una volta per ogni \textit{Crea prenotazione} (stessa
+frequenza, 23/g): risale tramite \textbf{APPARTENENZA} al
+\textbf{LIVELLO\_LOYALTY} correntemente posseduto dal cliente per
+leggerne \texttt{ScontoPercentuale}. Si stima un numero medio di righe
+coinvolte pari al rapporto ${APPARTENENZA}/{CLIENTE} =
+    19.000/14.500 \approx 1{,}3$.
+\medskip
 \newline
-Dato un cliente, risale tramite \textbf{APPARTENENZA} al \textbf{LIVELLO\_LOYALTY} correntemente posseduto per leggerne \texttt{ScontoPercentuale}. Individuare la riga ``corrente'' di \textbf{APPARTENENZA} richiede una interrogazione sullo storico ordinato per \texttt{DataInizio}.
-La \texttt{DataInizio} più recente è quella attribuita al livello attuale
-\smallskip
-\newline
-Si stima un numero medio di righe coinvolte pari al rapporto ${APPARTENENZA}/{CLIENTE} = 19.000/14.500 \approx 1{,}3$.
+Il prezzo base necessario per calcolare l'\texttt{Importo} di
+\textbf{PAGAMENTO} viene letto direttamente da \textbf{TIPOLOGIA\_CAMERA}
+tramite la tipologia richiesta (nota grazie a
+\textbf{RICHIESTA\_TIPOLOGIA}, introdotta appositamente per rendere
+questo calcolo possibile già in questa operazione, senza dover attendere
+l'assegnazione della camera fisica):
+
+\texttt{Importo} = \texttt{PrezzoBase}
+modificato dallo sconto loyalty del cliente.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.60\textwidth]{../resources/nav/HotelDB_Nav_CreaPrenotazione.jpeg}
+    \includegraphics[width=\textwidth]{../resources/nav/HotelDB_Nav_CreaPrenotazione.jpeg}
     \caption{Schema di navigazione --- Crea prenotazione}
 \end{figure}
 
@@ -636,24 +660,28 @@ Si stima un numero medio di righe coinvolte pari al rapporto ${APPARTENENZA}/{CL
     \begin{tabular}{|l|c|c|c|}
         \hline
         \rowcolor{headerblue}
-        \textbf{Concetto}   & \textbf{Costrutto} & \textbf{Accessi} & \textbf{Tipo}      \\
+        \textbf{Concetto}    & \textbf{Costrutto} & \textbf{Accessi}   & \textbf{Tipo}      \\
         \hline
-        CLIENTE             & E                  & 1                & L                  \\
-        APPARTENENZA        & A                  & 1,3              & L                  \\
-        LIVELLO\_LOYALTY    & E                  & 1                & L                  \\
-        PRENOTAZIONE        & E                  & 1                & S                  \\
-        STATO\_PRENOTAZIONE & E                  & 1                & L                  \\
-        VARIAZIONE          & A                  & 1                & S                  \\
-        PAGAMENTO           & E                  & 1                & S                  \\
+        CLIENTE              & E                  & 1                  & L                  \\
+        PRENOTAZIONE         & E                  & 1                  & S                  \\
+        STATO\_PRENOTAZIONE  & E                  & 1                  & L                  \\
+        VARIAZIONE           & A                  & 1                  & S                  \\
+        TIPOLOGIA\_CAMERA    & E                  & \textasciitilde{}1 & L                  \\
+        RICHIESTA\_TIPOLOGIA & A                  & \textasciitilde{}1 & S                  \\
+        APPARTENENZA         & A                  & 1,3                & L                  \\
+        LIVELLO\_LOYALTY     & E                  & 1                  & L                  \\
+        PAGAMENTO            & E                  & 1                  & S                  \\
         \hline
         \rowcolor{gray!25}
-        \textbf{Totale}     &                    & \textbf{7,3}     & \textbf{4,3L + 3S} \\
+        \textbf{Totale}      &                    & \textbf{9,3}       & \textbf{5,3L + 4S} \\
         \hline
     \end{tabular}
     \caption{Tavola degli accessi --- Crea prenotazione}
 \end{table}
 
-Costo giornaliero dell'operazione $= (4,3L + 3S{\times}2) \times 23 = 236,9 \approx 237$ accessi/giorno.
+Costo giornaliero dell'operazione $= (5{,}3L + 4S{\times}2) \times 23 =
+        305{,}9 \approx 306$ accessi/giorno.
+\newpage
 
 \subsection{Assegna camera/e a prenotazione}
 \label{sec:AssegnaCamera}
@@ -690,6 +718,8 @@ ${ASSEGNAZIONE}/{PRENOTAZIONE} = 35.000/25.000 = 1{,}4$.
 
 Costo giornaliero dell'operazione $= (2{,}4L + 1{,}4S{\times}2) \times 32
     \approx 166$ accessi/giorno.
+
+\newpage
 
 \subsection{Cambia stato prenotazione}
 \label{sec:CambiaStato}
@@ -729,6 +759,8 @@ Anche se lo \texttt{STATO} viene aggiornato in \textit{CheckOut}, non va comunqu
 
 Costo giornaliero dell'operazione $= (2L + 1S{\times}2) \times 92 = 368$
 accessi/giorno.
+
+\newpage
 
 \subsection{Registra consumazione servizio}
 \label{sec:RegistraConsumazione}
@@ -772,6 +804,8 @@ causa della frequenza (si veda \cref{sec:sintesiCarico}).
 Costo giornaliero dell'operazione $= (2L + 2S{\times}2) \times 183 = 1098$
 accessi/giorno.
 
+\newpage
+
 \subsection{Assegna livello loyalty a cliente}
 \label{sec:AssegnaLivello}
 
@@ -812,6 +846,8 @@ operazioni che devono \emph{ricostruire} il livello corrente, non qui.
 Costo giornaliero dell'operazione $= (2L + 1S{\times}2) \times 17 = 68$
 accessi/giorno.
 
+\newpage
+
 \subsection{Aggiorna stato camera}
 \label{sec:AggiornaStatoCamera}
 
@@ -849,6 +885,8 @@ minimo.
 
 Costo giornaliero dell'operazione $= (1L + 1S{\times}2) \times 46 = 138$
 accessi/giorno.
+
+\newpage
 
 \subsection{Consulta disponibilità camere in un intervallo}
 \label{sec:ConsultaDisponibilita}
@@ -907,6 +945,8 @@ temporale reale delle prenotazioni). Come verrà riportato in
 complessivo del sistema pur avendo una frequenza (50/g) tutt'altro che
 estrema: è il caso più chiaro di ``costo per accesso alto $\times$
 frequenza moderata = carico totale dominante''.
+
+\newpage
 
 \subsection{Consulta prenotazioni per data}
 \label{sec:ConsultaPrenotazioniData}
@@ -971,6 +1011,8 @@ dell'intervallo; in assenza di un'assunzione sulla distribuzione più
 precisa, si mantiene questa stima come caso base, da rivedere se in fase
 di test emergano intervalli tipici molto ampi.
 
+\newpage
+
 \subsection{Assegna ruolo a utente}
 \label{sec:AssegnaRuolo}
 
@@ -1006,6 +1048,8 @@ converte in $2/30 \approx 0{,}07$/giorno.
 Costo giornaliero dell'operazione $\approx (2L + 1S{\times}2) \times
     0{,}07 \approx 0{,}3$ accessi/giorno --- trascurabile, coerente con il
 volume totale di sole 22 istanze di \textbf{ATTRIBUZIONE} stimate.
+
+\newpage
 
 \subsection{Crea/modifica tipologia camera}
 \label{sec:TipologiaCameraOp}
@@ -1067,6 +1111,8 @@ applicata a \textbf{SERVIZIO}.
 
 Costo giornaliero (stimato) $\approx 0{,}1$ accessi/giorno.
 
+\newpage
+
 \subsection{Calcola fatturato giornaliero}
 \label{sec:FatturatoGiornaliero}
 
@@ -1119,6 +1165,8 @@ accessi/giorno. È un contrasto istruttivo con \textit{Consulta
 tutta la tavola, ma la frequenza minima (1/g, essendo un batch notturno)
 lo rende comunque secondario nel carico complessivo del sistema.
 
+\newpage
+
 \subsection{Calcola incassi giornalieri}
 \label{sec:IncassiGiornalieri}
 
@@ -1155,6 +1203,8 @@ pari alla somma dei pagamenti contestuali generati da \textit{Crea
 
 Costo giornaliero dell'operazione $\approx 206 \times 1 = 206$
 accessi/giorno.
+
+\newpage
 
 \subsection{Sintesi del carico giornaliero e individuazione delle operazioni critiche}
 \label{sec:sintesiCarico}
