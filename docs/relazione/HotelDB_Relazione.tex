@@ -766,12 +766,13 @@ accessi/giorno.
 \label{sec:RegistraConsumazione}
 
 L'operazione collega \textbf{CLIENTE} a \textbf{SERVIZIO} passando per
-\textbf{CONSUMO}. Trattandosi di un'associazione binaria semplice
-(\textbf{CONSUMO} è legato solo a \textbf{CLIENTE}, mai a
-\textbf{PRENOTAZIONE}, come da decisione concettuale), il cammino logico è
-lineare. Nonostante sia l'operazione più frequente del sistema (183/g), il
-costo per esecuzione resta basso: buon esempio di come alta frequenza non
-implichi necessariamente alto costo unitario — a differenza del carico
+\textbf{CONSUMO}, e registra contestualmente il relativo
+\textbf{PAGAMENTO} (Importo pari a \texttt{PrezzoApplicato} $\times$
+\texttt{Quantità}, riferito al \textbf{CONSUMO} appena creato).
+\newline
+Nonostante sia l'operazione più frequente del sistema (183/g), il costo per esecuzione
+resta basso: buon esempio di come alta frequenza non implichi
+necessariamente alto costo unitario --- a differenza del carico
 \emph{complessivo}, che invece resta comunque significativo proprio a
 causa della frequenza (si veda \cref{sec:sintesiCarico}).
 
@@ -945,6 +946,21 @@ temporale reale delle prenotazioni). Come verrà riportato in
 complessivo del sistema pur avendo una frequenza (50/g) tutt'altro che
 estrema: è il caso più chiaro di ``costo per accesso alto $\times$
 frequenza moderata = carico totale dominante''.
+
+\subsubsection*{Caso tipico: ricerca per tipologia specifica}
+Il caso analizzato sopra rappresenta il limite superiore del costo
+dell'operazione, utile per giustificare l'indice composito proposto.
+\newline
+Nell'uso più frequente --- ricerca camere disponibili di una singola
+tipologia già richiesta dal cliente in fase di prenotazione (grazie a
+\textbf{RICHIESTA\_TIPOLOGIA}) --- il costo è sensibilmente inferiore:
+coinvolge in media $80/8=10$ camere e, proporzionalmente,
+$\approx 23 \times (10/80) \approx 3$ prenotazioni sovrapposte, per un
+totale di $\approx 16$ accessi (contro $\approx 126$ del caso peggiore).
+Si mantiene il caso peggiore come riferimento per \Cref{tab:sintesiCarico}
+--- rappresenta il limite superiore di carico del sistema, rilevante ai
+fini del dimensionamento --- mentre il caso tipico fornisce una stima più
+realistica del costo medio giornaliero effettivo.
 
 \newpage
 
@@ -1127,13 +1143,13 @@ tasso medio di nuove prenotazioni ($\approx$23/g, assumendo che quasi
 ogni prenotazione arrivi infine a check-out). Il numero di consumazioni
 giornaliere ($\approx$183) riusa direttamente la stima già validata in
 \cref{sec:RegistraConsumazione}.
-\iffalse
-    \begin{figure}[H]
-        \centering
-        \includegraphics[width=0.65\textwidth]{../resources/nav/HotelDB_Nav_FatturatoGiornaliero.jpeg}
-        \caption{Schema di navigazione --- Calcola fatturato giornaliero}
-    \end{figure}
-\fi
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{../resources/nav/HotelDB_Nav_FatturatoGiornaliero.jpeg}
+    \caption{Schema di navigazione --- Calcola fatturato giornaliero}
+\end{figure}
+
 \begin{table}[H]
     \centering
     \rowcolors{2}{gray!10}{white}
@@ -1184,6 +1200,12 @@ pari alla somma dei pagamenti contestuali generati da \textit{Crea
     prenotazione} ($\approx$23/g) e da \textit{Registra consumazione
     servizio} ($\approx$183/g), $\approx$ 206/g.
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.4\textwidth]{../resources/nav/HotelDB_Nav_IncassiGiornalieri.jpeg}
+    \caption{Schema di navigazione --- Calcola incassi giornalieri}
+\end{figure}
+
 \begin{table}[H]
     \centering
     \rowcolors{2}{gray!10}{white}
@@ -1221,14 +1243,14 @@ ora la regola 80-20 su dati completi anziché su una selezione a priori.
         \rowcolor{headerblue}
         \textbf{Operazione}               & \textbf{Accessi/g}             & \textbf{\% cumulata} \\
         \hline
-        Consulta disponibilità camere     & 6.300                          & 66,3\%               \\
-        Registra consumazione servizio    & 1098                           & 77,8\%               \\
-        Consulta prenotazioni per data    & 470                            & 82,8\%               \\
-        Calcola fatturato giornaliero     & 401                            & 87,0\%               \\
-        Cambia stato prenotazione         & 368                            & 90,8\%               \\
-        Crea prenotazione                 & 237                            & 93,3\%               \\
+        Consulta disponibilità camere     & 6.300                          & 65,8\%               \\
+        Registra consumazione servizio    & 1.098                          & 77,2\%               \\
+        Consulta prenotazioni per data    & 470                            & 82,2\%               \\
+        Calcola fatturato giornaliero     & 401                            & 86,3\%               \\
+        Cambia stato prenotazione         & 368                            & 90,2\%               \\
+        Crea prenotazione                 & 306                            & 93,4\%               \\
         Calcola incassi giornalieri       & 206                            & 95,5\%               \\
-        Assegna camera/e a prenotazione   & 166                            & 97,2\%               \\
+        Assegna camera/e a prenotazione   & 166                            & 97,3\%               \\
         Aggiorna stato camera             & 138                            & 98,7\%               \\
         Assegna livello loyalty a cliente & 68                             & 99,4\%               \\
         Registra nuovo cliente            & 56                             & 100,0\%              \\
@@ -1237,7 +1259,7 @@ ora la regola 80-20 su dati completi anziché su una selezione a priori.
         Crea/modifica servizio accessorio & 0,1                            & 100,0\%              \\
         \hline
         \rowcolor{gray!25}
-        \textbf{Totale sistema}           & \textbf{\textasciitilde{}9508} &                      \\
+        \textbf{Totale sistema}           & \textbf{\textasciitilde{}9578} &                      \\
         \hline
     \end{tabular}
     \caption{Carico giornaliero complessivo per operazione, in ordine decrescente}
@@ -1247,11 +1269,11 @@ ora la regola 80-20 su dati completi anziché su una selezione a priori.
 Applicando rigorosamente la regola 80-20: le prime \textbf{tre}
 operazioni (\textit{Consulta disponibilità camere},
 \textit{Registra consumazione servizio}, \textit{Consulta prenotazioni
-    per data}) coprono da sole l'82,8\% del carico giornaliero complessivo del
+    per data}) coprono da sole l'82,2\% del carico giornaliero complessivo del
 sistema, pur essendo solo 3 delle 14 operazioni analizzate. Questo
 conferma quantitativamente quanto già osservato qualitativamente in
 precedenza su \textit{Consulta disponibilità camere}, ma la ridimensiona
-correttamente: da sola pesa per il 66,3\% del carico totale, un ordine di
+correttamente: da sola pesa per il 65,8\% del carico totale, un ordine di
 grandezza sopra qualunque altra operazione.
 
 \chapter{Progettazione dell'Applicazione}
