@@ -43,3 +43,6 @@ texput.log
 # --- Editor / sistema operativo ---
 .DS_Store
 Thumbs.db
+
+#Ignora project.md che tiene traccia di dove mi trovo nel progetto
+project.md
