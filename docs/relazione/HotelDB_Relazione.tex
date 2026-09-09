@@ -288,6 +288,16 @@ La generalizzazione è stata modellata come:
     \item \textbf{sovrapposta}, poiché una stessa persona può ricoprire entrambi i ruoli (ad esempio un dipendente che soggiorna presso l’hotel).
 \end{itemize}
 Questa scelta consente di separare correttamente le responsabilità dei soggetti mantenendo al contempo una struttura flessibile ed estendibile.
+\medskip
+\newline
+\textit{Nota di aggiornamento (Progettazione Logica --- fase di
+    Raffinamento dello schema, \cref{sec:RaffinamentoSchema}):} in fase di
+raffinamento le entità \textbf{CLIENTE} e \textbf{PERSONA} sono state
+accorpate in un'unica entità, e l'attributo di recapito è stato rivisto
+da OR-esclusivo (Email o Telefono) a Email obbligatoria con Telefono
+opzionale. Lo schema concettuale mostrato in figura riflette ancora la
+versione precedente a questa revisione; l'aggiornamento del diagramma è
+programmato per la prossima iterazione.
 
 \begin{figure}[H]
     \centering
@@ -1275,6 +1285,174 @@ conferma quantitativamente quanto già osservato qualitativamente in
 precedenza su \textit{Consulta disponibilità camere}, ma la ridimensiona
 correttamente: da sola pesa per il 65,8\% del carico totale, un ordine di
 grandezza sopra qualunque altra operazione.
+
+\newpage
+
+\section{Raffinamento dello schema}
+\label{sec:RaffinamentoSchema}
+
+Seguendo la metodologia del corso, la fase di ristrutturazione dello
+schema E/R si articola in quattro sotto-passi: eliminazione degli
+attributi multivalore, eliminazione delle gerarchie di generalizzazione,
+partizionamento/accorpamento di entità e associazioni, scelta degli
+identificatori principali.
+
+\subsection{Attributi opzionali di PERSONA}
+
+L'attributo di recapito di \textbf{PERSONA}, originariamente modellato
+come vincolo OR-esclusivo (Email oppure Telefono, si veda il capitolo
+Progettazione Concettuale), viene qui sostituito da due attributi
+scalari: \textbf{Email} obbligatoria e \textbf{Telefono} opzionale
+(valori NULL ammessi). La scelta elimina la necessità di un vincolo di
+tupla OR-esclusivo (non esprimibile a livello di semplice vincolo di
+dominio), mantenendo comunque garantito un recapito certo per ogni
+persona registrata. Si tratta di una semplificazione dichiarata: un cliente che preferisse essere contattato solo
+telefonicamente non è più rappresentabile come tale, ma resta comunque
+raggiungibile via email.
+
+\subsection{Eliminazione della gerarchia PERSONA--CLIENTE--UTENTE}
+
+La generalizzazione di \textbf{PERSONA} in \textbf{CLIENTE} e
+\textbf{UTENTE} (parziale, sovrapposta) non è direttamente rappresentabile
+nel modello relazionale e va quindi eliminata. Le alternative previste
+dalla metodologia sono tre: collasso verso l'alto, collasso verso il
+basso, sostituzione con associazioni (mantenimento di tutte le entità).
+
+Il collasso verso il basso è escluso a priori: la copertura della
+generalizzazione è parziale, e questa alternativa è applicabile solo con
+copertura totale (in caso contrario non si saprebbe dove collocare le
+istanze di PERSONA che non sono né CLIENTE né UTENTE).
+
+Tra le rimanenti due alternative, il criterio guida del corso ("mantieni
+insieme ciò che viene usato insieme") è stato applicato separatamente ai
+due rami della gerarchia, che presentano pattern di accesso
+sostanzialmente diversi:
+
+\begin{itemize}
+    \item Il ramo \textbf{CLIENTE} non possiede attributi propri nello
+          schema concettuale, e compare sistematicamente insieme a
+          \textbf{PERSONA} nelle operazioni a maggior carico del sistema
+          (Crea prenotazione, Registra consumazione servizio, Assegna
+          livello loyalty, Calcola fatturato giornaliero ---
+          \cref{tab:sintesiCarico}): gli accessi sono \emph{contestuali}.
+          Il criterio indica quindi il \textbf{collasso verso l'alto}:
+          \textbf{PERSONA} e \textbf{CLIENTE} vengono accorpate in
+          un'unica entità, che per semplicità viene chiamata
+          \textbf{Persona}.
+    \item Il ramo \textbf{UTENTE} possiede invece attributi propri
+          (\texttt{UserName}, \texttt{Password}), dati sensibili distinti
+          dall'anagrafica cliente, e compare in una sola operazione,
+          rarissima (Assegna ruolo a utente, 0,07/giorno): gli accessi
+          sono \emph{separati} dal resto del sistema. Il criterio indica
+          il \textbf{mantenimento} di \textbf{UTENTE} come entità
+          distinta, identificata esternamente da \textbf{Persona}
+          (chiave primaria \texttt{idPersona}, anche chiave esterna verso
+          \textbf{Persona}).
+\end{itemize}
+
+Questa combinazione (collasso su un ramo, mantenimento sull'altro) è una
+soluzione \emph{ibrida}, esplicitamente ammessa dalla metodologia quando
+i rami di una generalizzazione presentano pattern di accesso differenti.
+
+\subsubsection*{Verifica quantitativa}
+
+Oltre al criterio qualitativo, è stato possibile verificare la scelta sui
+numeri già disponibili in \cref{tab:sintesiCarico}: mantenendo
+\textbf{PERSONA} e \textbf{CLIENTE} separate, ogni lettura di un cliente
+richiederebbe un accesso aggiuntivo in join, concentrato proprio sulle
+operazioni più frequenti del sistema:
+
+\begin{table}[H]
+    \centering
+    \rowcolors{2}{gray!10}{white}
+    \begin{tabular}{|l|c|c|}
+        \hline
+        \rowcolor{headerblue}
+        \textbf{Operazione}               & \textbf{Freq./g} & \textbf{Accesso extra se separate} \\
+        \hline
+        Crea prenotazione                 & 23               & +23/g                              \\
+        Registra consumazione servizio    & 183              & +183/g                             \\
+        Assegna livello loyalty a cliente & 17               & +17/g                              \\
+        Calcola fatturato giornaliero     & 1 ($\times$23)   & +23/g                              \\
+        \hline
+        \rowcolor{gray!25}
+        \textbf{Totale}                   &                  & \textbf{+246/g}                    \\
+        \hline
+    \end{tabular}
+    \caption{Overhead stimato da JOIN Persona--Cliente se mantenute separate}
+\end{table}
+
+Su un carico complessivo di $\sim$9.578 accessi/giorno, l'overhead
+stimato ($\sim$2,6\%) è concentrato esattamente sulle due operazioni più
+pesanti del sistema, confermando quantitativamente la scelta qualitativa
+del collasso verso l'alto.
+
+\subsubsection*{Nessun selettore introdotto}
+
+Il collasso verso l'alto richiederebbe, in generale, un attributo
+selettore per distinguere le istanze di \textbf{Persona} che sono anche
+\textbf{Cliente}. In questo caso non è necessario introdurlo: ogni
+cliente possiede sempre almeno una riga nell'associazione
+\textbf{appartenenza} verso \textbf{LIVELLO\_LOYALTY} (per l'automatismo
+già descritto nel capitolo Progettazione Concettuale), quindi
+l'appartenenza al ruolo "cliente" è derivabile con una semplice verifica
+di esistenza (\texttt{EXISTS}) su tale associazione, senza introdurre un
+attributo ridondante. Scelta coerente con il criterio di minimalità già
+applicato a \texttt{DataFine} e a \texttt{ScontoPercentuale}.
+
+\subsection{Partizionamento e accorpamento di entità e associazioni}
+
+Nessuna modifica proposta in questa fase. Nessuna entità dello schema
+presenta gruppi di attributi acceduti sistematicamente in modo separato
+(esempio: separazione ``dati anagrafici / dati
+lavorativi'' dell'esempio didattico), e i volumi delle entità coinvolte
+sono contenuti. Le associazioni \textbf{ASSEGNAZIONE} e
+\textbf{RICHIESTA\_TIPOLOGIA}, pur collegando le stesse entità, restano
+distinte poiché rappresentano concetti diversi (rispettivamente
+l'assegnazione fisica di una camera e la richiesta di tipologia espressa
+al momento della prenotazione): non costituiscono un caso di accorpamento
+ridondante.
+
+\subsection{Scelta degli identificatori principali}
+
+Per la maggior parte delle entità e associazioni la chiave primaria
+coincide banalmente con l'identificatore già scelto in fase concettuale o
+con la combinazione delle chiavi esterne delle entità collegate. Due
+associazioni storiche meritano una motivazione esplicita, poiché la
+combinazione standard delle chiavi esterne non è sufficiente a garantire
+l'unicità:
+
+\begin{itemize}
+    \item \textbf{APPARTENENZA}: chiave primaria
+          $(\texttt{idPersona}, \texttt{DataInizio})$,
+          \newline
+          \emph{non} $(\texttt{idPersona}, \texttt{idLivello})$. Un cliente può
+          infatti tornare a un livello loyalty già posseduto in
+          precedenza (ad es. Gold $\to$ Silver $\to$ Gold), rendendo
+          possibile la ripetizione della coppia persona-livello; solo
+          \texttt{DataInizio} identifica univocamente il singolo evento
+          di cambio.
+    \item \textbf{VARIAZIONE}: chiave primaria
+          $(\texttt{idPrenotazione}, \texttt{DataOraCambio})$,
+          \newline
+          \emph{non} $(\texttt{idPrenotazione}, \texttt{idStato})$. Le
+          cardinalità Chen non escludono che una prenotazione transiti
+          due volte per lo stesso stato nel tempo; solo
+          \texttt{DataOraCambio} garantisce l'unicità dell'evento di
+          cambio stato.
+\end{itemize}
+
+\subsubsection*{Nota: asimmetria nello storico degli stati}
+
+A differenza di \textbf{Prenotazione}, il cui stato è tracciato
+storicamente tramite \textbf{VARIAZIONE}, l'attributo \texttt{Stato} di
+\textbf{Camera} non possiede uno storico analogo: viene semplicemente
+sovrascritto ad ogni aggiornamento (operazione ``Aggiorna stato camera'',
+\cref{sec:AggiornaStatoCamera}). Si tratta di una scelta intenzionale e
+non di un'omissione: nessun requisito funzionale richiede la
+consultazione dello storico degli stati di una camera, a differenza dello
+storico degli stati di una prenotazione, esplicitamente richiesto
+(capitolo Analisi dei Requisiti).
 
 \chapter{Progettazione dell'Applicazione}
 
